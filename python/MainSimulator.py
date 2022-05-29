@@ -27,8 +27,7 @@ class MainSimulator:
         """
         Boostrap the environment and run the evolutionary simulation.
         """
-        while BasicEnv(conf=Conf(self._config_file)).run():
-            pass
+        BasicEnv(conf=Conf(self._config_file)).run()
         return
 
 

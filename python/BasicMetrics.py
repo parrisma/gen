@@ -1,19 +1,20 @@
 import uuid
 from base.Metrics import Metrics
+from id.MetricsId import MetricsId
 
 
 class BasicMetrics(Metrics):
-    _organism_uuid: uuid
+    _metrics_id: MetricsId
     _alive: bool
 
     def __init__(self,
                  organism_id: uuid):
         self._alive = True
-        self._organism = organism_id
+        self.metrics_id = MetricsId()
         return
 
-    def get_organism_id(self) -> uuid:
-        return self._organism
+    def get_metrics_id(self) -> MetricsId:
+        return self._metrics_id
 
     def is_alive(self) -> bool:
         return self._alive

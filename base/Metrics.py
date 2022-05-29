@@ -1,5 +1,5 @@
-import uuid
 from abc import ABC, abstractmethod
+from id.MetricsId import MetricsId
 
 
 class Metrics(ABC):
@@ -8,10 +8,10 @@ class Metrics(ABC):
     """
 
     @abstractmethod
-    def get_organism_id(self) -> uuid:
+    def get_metrics_id(self) -> MetricsId:
         """
-        Get the organism unique identifier to which the metrics relate
-        :return: An Organism UUID
+        Get the metrics unique identifier to which the metrics relate
+        :return: A globally unique metrics id
         """
         raise NotImplementedError
 
