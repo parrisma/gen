@@ -1,6 +1,6 @@
 import uuid
-from base.Metrics import Metrics
-from id.MetricsId import MetricsId
+from python.base.Metrics import Metrics
+from python.id.MetricsId import MetricsId
 
 
 class BasicMetrics(Metrics):

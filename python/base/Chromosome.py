@@ -1,8 +1,8 @@
 from typing import List
 from abc import ABC, abstractmethod
-from id.ChromosomeId import ChromosomeId
-from id.GeneId import GeneId
-from base.Gene import Gene
+from python.id.ChromosomeId import ChromosomeId
+from python.id.GeneId import GeneId
+from python.base.Gene import Gene
 
 
 class Chromosome(ABC):
@@ -20,18 +20,28 @@ class Chromosome(ABC):
 
     @abstractmethod
     def get_gene(self,
-                 gene_id: GeneId) -> Gene:
+                 gene_type: str) -> Gene:
         """
-        Get the gene of the given id
-        :return: The gene that matches the given id
+        Get the gene of the given type (as returned by Gene.type())
+        :param gene_type: The type of the Gene within the Chromosome to get
+        :return: The gene that matches the given type
         """
         raise NotImplementedError
 
     @abstractmethod
-    def get_gene_ids(self) -> List[GeneId]:
+    def set_gene(self,
+                 gene: Gene) -> None:
         """
-        Get all the id's for the Genes in the Chromosome
-        :return: A list of GeneId's
+        Add or update the given gene within the Chromosome
+        :param gene: The Gene to add/update within the Chromosome
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_gene_types(self) -> List[str]:
+        """
+        Get all the types for the Genes in the Chromosome (as returned by Gene.type())
+        :return: A list of Gene types
         """
         raise NotImplementedError
 

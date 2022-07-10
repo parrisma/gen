@@ -1,15 +1,20 @@
 from typing import List, Dict
-from base.Fitness import Fitness
-from base.Diversity import Diversity
-from BasicOrganism import BasicOrganism
-from base.Selector import Selector
+from abc import ABC, abstractmethod
+from python.base.Fitness import Fitness
+from python.base.Diversity import Diversity
+from python.base.Organism import Organism
 
 
-class BasicSelector(Selector):
-    def select_survivers(self,
+class Selector(ABC):
+    """
+    The interface for selecting Organisms from a population.
+    """
+
+    @abstractmethod
+    def select_survivors(self,
                          population_fitness: Dict[str, Fitness],
                          population_diversity: Dict[str, Diversity],
-                         population: List[BasicOrganism]) -> Dict[str, BasicOrganism]:
+                         population: List[Organism]) -> Dict[str, Organism]:
         """
         Select the population survivers given their relative fitness and diversity
         :param population_fitness: A dictionary of the population fitness

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from id.GeneId import GeneId
+from python.id.GeneId import GeneId
 
 
 class Gene(ABC):
@@ -29,5 +29,19 @@ class Gene(ABC):
     def mutate(self) -> None:
         """
         Make a random mutation to the Gene
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def value(self):
+        """
+        Return the value of the Gene - the return type is specific to the Gene
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def type(self) -> str:
+        """
+        Return the type of the Gene
         """
         raise NotImplementedError

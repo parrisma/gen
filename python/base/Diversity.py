@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from id.DiversityId import DiversityId
+from python.id.DiversityId import DiversityId
 
 
 class Diversity(ABC):

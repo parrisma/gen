@@ -1,7 +1,9 @@
 import sys
 from BaseArgParser import BaseArgParser
-from BasicEnv import BasicEnv
+from SimpleEnv import SimpleEnv
 from Conf import Conf
+from organism.basic.BasicOrganismFactory import BasicOrganismFactory
+from organism.basic.BasicSelector import BasicSelector
 
 
 class MainSimulator:
@@ -27,7 +29,9 @@ class MainSimulator:
         """
         Boostrap the environment and run the evolutionary simulation.
         """
-        BasicEnv(conf=Conf(self._config_file)).run()
+        SimpleEnv(conf=Conf(self._config_file),
+                  organism_factory=BasicOrganismFactory(),
+                  selector=BasicSelector()).run()
         return
 
 

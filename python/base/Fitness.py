@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from base.Metrics import Metrics
-from id.FitnessId import FitnessId
+from python.base.Metrics import Metrics
+from python.id.FitnessId import FitnessId
 
 
 class Fitness(ABC):

@@ -1,20 +1,20 @@
 from typing import List
-from id.OrganismId import OrganismId
-from base.Organism import Organism
-from base.Diversity import Diversity
-from base.Chromosome import Chromosome
-from BasicMetrics import BasicMetrics
+from python.id.OrganismId import OrganismId
+from python.base.Organism import Organism
+from python.base.Diversity import Diversity
+from python.base.Chromosome import Chromosome
+from python.organism.basic.BasicMetrics import BasicMetrics
+from python.organism.basic.BasicChromosome import BasicChromosome
 
 
 class BasicOrganism(Organism):
     _id: OrganismId
-    _chromosomes: List[Chromosome]
+    _chromosomes: List[BasicChromosome]
     _metrics: BasicMetrics
 
-    def __init__(self,
-                 chromosomes: List[Chromosome]):
+    def __init__(self):
         self._id = OrganismId()
-        self._chromosomes = chromosomes
+        self._chromosomes = [BasicChromosome()]
         self._metrics = BasicMetrics(self.get_id())
         print(f'{self._id} Organism is born')
         return
@@ -37,6 +37,7 @@ class BasicOrganism(Organism):
         :param comparison_organism: The Organism to calculate diversity with respect to.
         :return: The relative diversity
         """
+
         raise NotImplementedError
 
     def get_chromosomes(self) -> List[Chromosome]:
@@ -44,7 +45,7 @@ class BasicOrganism(Organism):
         Get the chromosomes of the Organism
         :return: A list of chromosomes
         """
-        raise NotImplementedError
+        return self._chromosomes
 
     def crossover(self,
                   mix_rate: float,

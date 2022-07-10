@@ -2,17 +2,17 @@ from typing import Dict, List
 import concurrent.futures
 import numpy as np
 from Conf import Conf
-from base.Env import Env
-from base.Fitness import Fitness
-from base.Diversity import Diversity
-from base.Chromosome import Chromosome
-from BasicMetrics import BasicMetrics
-from BasicOrganism import BasicOrganism
-from BasicSelector import BasicSelector
-from BasicOrganismFactory import BasicOrganismFactory
+from python.base.Env import Env
+from python.base.Fitness import Fitness
+from python.base.Diversity import Diversity
+from python.base.Chromosome import Chromosome
+from python.organism.basic.BasicMetrics import BasicMetrics
+from python.organism.basic.BasicOrganism import BasicOrganism
+from python.organism.basic.BasicSelector import BasicSelector
+from python.organism.basic.BasicOrganismFactory import BasicOrganismFactory
 
 
-class BasicEnv(Env):
+class SimpleEnv(Env):
     _num_gen_zero_organisms: int
     _mutation_rate: float
     _crossover_rate: float
@@ -27,7 +27,7 @@ class BasicEnv(Env):
                  selector: BasicSelector,
                  organism_factory: BasicOrganismFactory,
                  conf: Conf):
-        super(BasicEnv, self).__init__()
+        super(SimpleEnv, self).__init__()
         self._num_gen_zero_organisms = conf.config["environment"]["num_generation_zero_organisms"]
         self._crossover_rate = conf.config["environment"]["crossover_rate"]
         self._mutation_rate = conf.config["environment"]["mutation_rate"]
@@ -41,6 +41,7 @@ class BasicEnv(Env):
         """
         Create the initial generation zero population.
         """
+        self._population.clear()
         for _ in range(self._num_gen_zero_organisms):
             o = self._organism_factory.new()
             self._population[o.get_id()] = o
@@ -92,13 +93,13 @@ class BasicEnv(Env):
 
         raise NotImplementedError
 
-    def select_next_generation(self) -> None:
+    def rank_and_select_survivors(self) -> None:
         """
         Based on the organisms' fitness & diversity , establish which of the current population should
         survive into the next generation
         """
         new_population: Dict[str, BasicOrganism] = {}
-        new_population = self._selector.select_survivers(population_fitness=self._fitness,
+        new_population = self._selector.select_survivors(population_fitness=self._fitness,
                                                          population_diversity=self._diversity,
                                                          population=list(self._population.values()))
         self._population.clear()
@@ -136,7 +137,7 @@ class BasicEnv(Env):
             chromosome: Chromosome
             for chromosome in chromosomes:
                 if np.random.rand() > self._crossover_rate:
-                    gene_id_to_mutate = np.random.choice(chromosome.get_gene_ids())
+                    gene_id_to_mutate = np.random.choice(chromosome.get_gene_types())
                     chromosome.get_gene(gene_id_to_mutate).mutate()
 
         return next_generation_chromosomes
@@ -147,6 +148,10 @@ class BasicEnv(Env):
         Create the next generation of Organisms
         :param next_generation_chromosomes: The candidate chromosomes of the next generation
         """
+        chromosomes: List[Chromosome]
+        for chromosomes in next_generation_chromosomes:
+            o = self._organism_factory.new()
+            self._population[o.get_id()] = o
         return
 
     def run(self) -> bool:
@@ -159,9 +164,7 @@ class BasicEnv(Env):
         while not self.termination_conditions_met():
             self.run_population()
             self.evaluate_fitness()
-            self.select_next_generation()
-            self.crossover()
-            self.mutate()
-            self.create_next_generation()
+            self.rank_and_select_survivors()
+            self.create_next_generation(self.mutate(self.crossover()))
 
         return False

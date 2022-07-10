@@ -18,3 +18,9 @@ class EntityId(str):
         :return: Entity Id as string
         """
         return copy(self._id)  # Ensure immutability of Id
+
+    def __str__(self) -> str:
+        return self.as_str()
+
+    def __repr__(self) -> str:
+        return self.as_str()

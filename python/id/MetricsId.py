@@ -1,4 +1,4 @@
-from id.EntityId import EntityId
+from python.id.EntityId import EntityId
 
 
 class MetricsId(EntityId):

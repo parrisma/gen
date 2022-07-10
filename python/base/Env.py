@@ -1,8 +1,8 @@
 from typing import List
 from abc import ABC, abstractmethod
-from base.Fitness import Fitness
-from base.Diversity import Diversity
-from base.Chromosome import Chromosome
+from python.base.Fitness import Fitness
+from python.base.Diversity import Diversity
+from python.base.Chromosome import Chromosome
 
 
 class Env(ABC):
@@ -48,7 +48,7 @@ class Env(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def select_next_generation(self) -> None:
+    def rank_and_select_survivors(self) -> None:
         """
         Based on the current fitness metrics, establish which of the current population should
         survive into the next generation

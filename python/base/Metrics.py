@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from id.MetricsId import MetricsId
+from python.id.MetricsId import MetricsId
 
 
 class Metrics(ABC):

@@ -1,9 +1,9 @@
 from typing import List
 from abc import ABC, abstractmethod
-from base.Chromosome import Chromosome
-from base.Metrics import Metrics
-from base.Diversity import Diversity
-from id.OrganismId import OrganismId
+from python.base.Chromosome import Chromosome
+from python.base.Metrics import Metrics
+from python.base.Diversity import Diversity
+from python.id.OrganismId import OrganismId
 
 
 class Organism(ABC):
