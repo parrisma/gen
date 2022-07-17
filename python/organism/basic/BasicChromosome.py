@@ -3,6 +3,7 @@ from copy import deepcopy
 import numpy as np
 from python.exceptions.NoSuchGeneTypeInChromosome import NoSuchGeneTypeInChromosome
 from python.exceptions.ChromosomeMissMatch import ChromosomeMissMatch
+from python.exceptions.NotAGene import NotAGene
 from python.id.ChromosomeId import ChromosomeId
 from python.base.Chromosome import Chromosome
 from python.base.Gene import Gene
@@ -16,15 +17,22 @@ class BasicChromosome(Chromosome):
     """
 
     _id: ChromosomeId
-    _genes: Dict[str, Gene]
+    _genes: Dict[type, Gene]
 
-    def __init__(self):
+    def __init__(self,
+                 drought_gene: DroughtToleranceGene = None,
+                 light_gene: LightToleranceGene = None):
         self._id = ChromosomeId()
-        drought_gene = DroughtToleranceGene()
-        light_gene = LightToleranceGene()
+
+        if drought_gene is None:
+            drought_gene = DroughtToleranceGene()
+
+        if light_gene is None:
+            light_gene = LightToleranceGene()
+
         self._genes = dict()
-        self._genes[drought_gene.type()] = drought_gene
-        self._genes[light_gene.type()] = light_gene
+        self._genes[type(drought_gene)] = drought_gene
+        self._genes[type(light_gene)] = light_gene
         return
 
     def get_chromosome_id(self) -> ChromosomeId:
@@ -35,15 +43,17 @@ class BasicChromosome(Chromosome):
         return deepcopy(self._id)  # ensure id is immutable
 
     def get_gene(self,
-                 gene_type: str) -> Gene:
+                 gene_type: type) -> Gene:
         """
         Get the gene of the given type (as returned by Gene.type())
         :param gene_type: The type of Gene to get
         :return: The gene that matches the given type
         """
-        if str(gene_type) not in self._genes.keys():
+        if not isinstance(gene_type, type):
+            raise ValueError(f'get_gene expects a type of gene to be passed')
+        if gene_type not in self._genes.keys():
             raise NoSuchGeneTypeInChromosome
-        return self._genes[str(gene_type)]
+        return self._genes[gene_type]
 
     def set_gene(self,
                  gene: Gene) -> None:
@@ -51,9 +61,11 @@ class BasicChromosome(Chromosome):
         Add or update the given gene within the Chromosome
         :param gene: The Gene to add/update within the Chromosome
         """
-        self._genes[gene.type()] = gene
+        if not isinstance(gene, Gene):
+            raise NotAGene(type(gene))
+        self._genes[type(gene)] = gene
 
-    def get_gene_types(self) -> List[str]:
+    def get_gene_types(self) -> List[type]:
         """
         Get all the types for the Genes in the Chromosome (as returned by Gene.type())
         :return: A list of Gene types

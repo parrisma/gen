@@ -1,13 +1,12 @@
 from typing import List
 from abc import ABC, abstractmethod
 from python.id.ChromosomeId import ChromosomeId
-from python.id.GeneId import GeneId
 from python.base.Gene import Gene
 
 
 class Chromosome(ABC):
     """
-    A means to hold the data required to evaluate the relative fitness of organisms
+    A related collection of Genes
     """
 
     @abstractmethod
@@ -20,9 +19,9 @@ class Chromosome(ABC):
 
     @abstractmethod
     def get_gene(self,
-                 gene_type: str) -> Gene:
+                 gene_type: type) -> Gene:
         """
-        Get the gene of the given type (as returned by Gene.type())
+        Get the gene of the given type
         :param gene_type: The type of the Gene within the Chromosome to get
         :return: The gene that matches the given type
         """

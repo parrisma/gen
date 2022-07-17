@@ -1,7 +1,5 @@
 from typing import List
 from abc import ABC, abstractmethod
-from python.base.Fitness import Fitness
-from python.base.Diversity import Diversity
 from python.base.Chromosome import Chromosome
 
 
@@ -34,20 +32,6 @@ class Env(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def evaluate_fitness(self) -> Fitness:
-        """
-        Evaluate the fitness of the current population.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def evaluate_diversity(self) -> Diversity:
-        """
-        Evaluate the diversity of the current population with respect to itself.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
     def rank_and_select_survivors(self) -> None:
         """
         Based on the current fitness metrics, establish which of the current population should
@@ -56,24 +40,7 @@ class Env(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def crossover(self) -> List[List[Chromosome]]:
-        """
-        Based on a defined <crossover_rate>, cross genes between the pair of given Organisms designated as
-        'mating'
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def mutate(self,
-               next_generation_chromosomes: List[List[Chromosome]]) -> List[List[Chromosome]]:
-        """
-        Based on a defined <mutation_rate>. introduce random perturbation into the Organisms populations Genes
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def create_next_generation(self,
-                               next_generation_chromosomes: List[List[Chromosome]]) -> None:
+    def create_next_generation(self) -> None:
         """
         Create the next generation of Organisms
         """

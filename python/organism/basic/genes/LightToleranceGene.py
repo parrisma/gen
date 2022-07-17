@@ -12,12 +12,19 @@ class LightToleranceGene(Gene):
     _id: GeneId
     _light_tolerance: float
 
-    def __init__(self):
-        self._id = GeneId()
+    def __init__(self,
+                 gene_value: float = None):
 
+        self._id = GeneId()
         # Range is -1 likes dark to +1 likes light
         #
-        self._light_tolerance = (np.random.random(1) * 2) - 1
+        if gene_value is None:
+            self._light_tolerance = (np.random.random(1) * 2) - 1
+        else:
+            if -1.0 <= gene_value <= 1.0:
+                self._light_tolerance = gene_value
+            else:
+                raise ValueError(f'Light tolerance must be in range -1.0 to +1.0 but given {gene_value}')
         return
 
     def get_gene_id(self) -> GeneId:
@@ -55,3 +62,8 @@ class LightToleranceGene(Gene):
         Return the type of the Gene
         """
         return self.__class__.__name__
+
+    def __eq__(self, other):
+        if isinstance(other, LightToleranceGene):
+            return self._light_tolerance == other._light_tolerance
+        return False

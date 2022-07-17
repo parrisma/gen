@@ -10,7 +10,7 @@ class BasicMetrics(Metrics):
     def __init__(self,
                  organism_id: uuid):
         self._alive = True
-        self.metrics_id = MetricsId()
+        self._metrics_id = MetricsId()
         return
 
     def get_metrics_id(self) -> MetricsId:

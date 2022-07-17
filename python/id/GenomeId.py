@@ -1,9 +1,9 @@
 from python.id.EntityId import EntityId
 
 
-class DiversityId(EntityId):
+class GenomeId(EntityId):
     """
-    The globally unique Id of a Diversity
+    The globally unique Id of a Genome
     """
 
     def __init__(self):

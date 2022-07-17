@@ -4,7 +4,7 @@ from python.id.GeneId import GeneId
 
 class Gene(ABC):
     """
-    A means to hold the data required to evaluate the relative fitness of organisms
+    A means to influence the expression of given characteristic(s) of an Organism.
     """
 
     @abstractmethod
@@ -36,12 +36,5 @@ class Gene(ABC):
     def value(self):
         """
         Return the value of the Gene - the return type is specific to the Gene
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def type(self) -> str:
-        """
-        Return the type of the Gene
         """
         raise NotImplementedError

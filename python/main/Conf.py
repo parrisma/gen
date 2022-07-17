@@ -37,7 +37,7 @@ class Conf:
     @property
     def source_file(self) -> str:
         """
-        The name of the JSON file used to boot strap the configuration
-        :return: JOSN file name
+        The name of the JSON file used to bootstrap the configuration
+        :return: JSON file name
         """
         return self._source_file

@@ -12,12 +12,19 @@ class DroughtToleranceGene(Gene):
     _id: GeneId
     _drought_tolerance: float
 
-    def __init__(self):
-        self._id = GeneId()
+    def __init__(self,
+                 gene_value: float = None):
 
+        self._id = GeneId()
         # Range is -1 likes wet to +1 likes dry
         #
-        self._drought_tolerance = (np.random.random(1) * 2) - 1
+        if gene_value is None:
+            self._drought_tolerance = (np.random.random(1) * 2) - 1
+        else:
+            if -1.0 <= gene_value <= 1.0:
+                self._drought_tolerance = gene_value
+            else:
+                raise ValueError(f'Drought tolerance must be in range -1.0 to +1.0 but given {gene_value}')
         return
 
     def get_gene_id(self) -> GeneId:
@@ -34,7 +41,7 @@ class DroughtToleranceGene(Gene):
         :param comparison_gene: The gene to calculate diversity with respect to.
         :return: The relative diversity
         """
-        if self.type() is not comparison_gene.type():
+        if not isinstance(self, type(comparison_gene)):
             raise GeneTypeMismatch
         return (self._drought_tolerance - comparison_gene.value()) ^ 2
 
@@ -50,8 +57,7 @@ class DroughtToleranceGene(Gene):
         """
         return float(self._drought_tolerance)
 
-    def type(self) -> str:
-        """
-        Return the type of the Gene
-        """
-        return self.__class__.__name__
+    def __eq__(self, other):
+        if isinstance(other, DroughtToleranceGene):
+            return self._drought_tolerance == other._drought_tolerance
+        return False

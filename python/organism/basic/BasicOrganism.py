@@ -1,7 +1,6 @@
 from typing import List
 from python.id.OrganismId import OrganismId
 from python.base.Organism import Organism
-from python.base.Diversity import Diversity
 from python.base.Chromosome import Chromosome
 from python.organism.basic.BasicMetrics import BasicMetrics
 from python.organism.basic.BasicChromosome import BasicChromosome
@@ -16,22 +15,27 @@ class BasicOrganism(Organism):
         self._id = OrganismId()
         self._chromosomes = [BasicChromosome()]
         self._metrics = BasicMetrics(self.get_id())
-        print(f'{self._id} Organism is born')
         return
 
     def __call__(self, *args, **kwargs):
         return self.run()
 
-    def run(self) -> BasicMetrics:
-        print(f'{self._id} Organism has run')
+    def run(self) -> Organism:
         self._metrics.set_alive(False)
-        return self._metrics
+        return self
+
+    def is_alive(self) -> bool:
+        """
+        Establish if the organism is still alive an operable in the environment
+        :return: True, if the organism is alive
+        """
+        return self._metrics.is_alive()
 
     def get_id(self) -> str:
         return self._id.as_str()
 
-    def get_diversity(self,
-                      comparison_organism: List['Organism']) -> Diversity:
+    def get_relative_diversity(self,
+                               comparison_organism: List['Organism']) -> float:
         """
         Get the diversity of the Organism with respect to the given Organism
         :param comparison_organism: The Organism to calculate diversity with respect to.
@@ -40,7 +44,7 @@ class BasicOrganism(Organism):
 
         raise NotImplementedError
 
-    def get_chromosomes(self) -> List[Chromosome]:
+    def get_genome(self) -> List[Chromosome]:
         """
         Get the chromosomes of the Organism
         :return: A list of chromosomes

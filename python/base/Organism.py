@@ -1,8 +1,7 @@
 from typing import List
 from abc import ABC, abstractmethod
-from python.base.Chromosome import Chromosome
+from python.base.Genome import Genome
 from python.base.Metrics import Metrics
-from python.base.Diversity import Diversity
 from python.id.OrganismId import OrganismId
 
 
@@ -20,39 +19,47 @@ class Organism(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def run(self) -> Metrics:
+    def is_alive(self) -> bool:
+        """
+        Establish if the organism is still alive an operable in the environment
+        :return: True, if the organism is alive
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def run(self) -> 'Organism':
         """
         Life is divided up into single step quanta,where the environment will give every organism the opportunity
         to take a single life step before iterating ove the population again.
-        :return: Metrics collected during the run cycle for the Organism.
+        :return: reference to our self .
         """
         raise NotImplementedError
 
     @abstractmethod
-    def get_diversity(self,
-                      comparison_organism: List['Organism']) -> Diversity:
+    def get_relative_diversity(self,
+                               comparison_organism: List['Organism']) -> float:
         """
         Get the diversity of the Organism with respect to the given Organism
         :param comparison_organism: The Organism to calculate diversity with respect to.
-        :return: The relative diversity
+        :return: The relative diversity in the range 0.0 to 1.0
         """
         raise NotImplementedError
 
     @abstractmethod
-    def get_chromosomes(self) -> List[Chromosome]:
+    def get_genome(self) -> Genome:
         """
-        Get the chromosomes of the Organism
-        :return: A list if chromosomes
+        Get the Genome of the Organism
+        :return: The Organisms Genome
         """
         raise NotImplementedError
 
     @abstractmethod
     def crossover(self,
                   mix_rate: float,
-                  organism: 'Organism') -> List[Chromosome]:
+                  organism: 'Organism') -> Genome:
         """
-        Based on the mix rate return a list of chromosomes with genes mixed between the Organism and the given
-        chromosomes.
+        Based on the mix rate return a Genome with genes mixed between the Organism and the given
+        Organism.
         :param mix_rate: The rate of mixing of Genes between the Chromosomes
         :param organism: The organism to cross with
         :return: The Chromosomes resulting from the crossover.
@@ -61,11 +68,11 @@ class Organism(ABC):
 
     @abstractmethod
     def mutate(self,
-               mutation_rate: float) -> List[Chromosome]:
+               mutation_rate: float) -> Genome:
         """
-        Based on a defined <mutation_rate>. introduce random perturbation into the Organisms populations Genes
+        Based on a defined <mutation_rate>. introduce random perturbation into the Organisms Genome
         :param mutation_rate: The rate at which Genes are affected by random perturbations
-        :return: The Chromosomes resulting from the mutation.
+        :return: The Genome resulting from the mutation.
         """
         raise NotImplementedError
 

@@ -1,7 +1,7 @@
 import sys
-from BaseArgParser import BaseArgParser
+from python.main.BaseArgParser import BaseArgParser
 from SimpleEnv import SimpleEnv
-from Conf import Conf
+from python.main.Conf import Conf
 from organism.basic.BasicOrganismFactory import BasicOrganismFactory
 from organism.basic.BasicSelector import BasicSelector
 
