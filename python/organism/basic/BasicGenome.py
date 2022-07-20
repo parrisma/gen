@@ -1,7 +1,9 @@
 from typing import Dict, List
 from copy import deepcopy
+import numpy as np
 from python.exceptions.NoSuchChromosomeInGenome import NoSuchChromosomeInGenome
 from python.exceptions.NotAChromosome import NotAChromosome
+from python.exceptions.GenomeMissMatch import GenomeMissMatch
 from python.id.GenomeId import GenomeId
 from python.base.Genome import Genome
 from python.base.Chromosome import Chromosome
@@ -73,4 +75,14 @@ class BasicGenome(Genome):
         :param comparison_genome: The Genome to calculate diversity with respect to.
         :return: The relative diversity
         """
-        return 0
+        chromosomes_self = sorted(list(map(str, self.get_chromosome_types())))
+        chromosomes_compare = sorted(list(map(str, comparison_genome.get_chromosome_types())))
+        if chromosomes_self != chromosomes_compare:
+            raise GenomeMissMatch
+
+        diversities: List[float] = []
+        chromosome: Chromosome
+        for chromosome in self._chromosomes.values():
+            diversities.append(chromosome.get_diversity(comparison_genome.get_chromosome(type(chromosome))))
+
+        return np.array(diversities).mean(axis=-1)

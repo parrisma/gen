@@ -79,12 +79,14 @@ class BasicChromosome(Chromosome):
         :param comparison_chromosome: The Chromosome to calculate diversity with respect to.
         :return: The relative diversity
         """
-        if self.get_gene_types() != comparison_chromosome.get_gene_types():
+        genes_self = sorted(list(map(str, self.get_gene_types())))
+        genes_compare = sorted(list(map(str, comparison_chromosome.get_gene_types())))
+        if genes_self != genes_compare:
             raise ChromosomeMissMatch
 
         diversities: List[float] = []
         gene: Gene
-        for gene in self._genes:
-            diversities.append(gene.get_diversity(comparison_chromosome.get_gene(gene.type())))
+        for gene in self._genes.values():
+            diversities.append(gene.get_diversity(comparison_chromosome.get_gene(type(gene))))
 
         return np.array(diversities).mean(axis=-1)

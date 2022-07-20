@@ -1,5 +1,6 @@
 import unittest
-from typing import List
+import inspect
+from typing import List, Callable
 from python.organism.basic.BasicChromosome import BasicChromosome
 from python.organism.basic.genes.DroughtToleranceGene import DroughtToleranceGene
 from python.organism.basic.genes.LightToleranceGene import LightToleranceGene
@@ -30,3 +31,12 @@ class TestUtil:
         for t in expected_types:
             test_case.assertTrue(t in actual_types)
         return
+
+    @classmethod
+    def test_case(cls,
+                  func):
+        def annotated_test_case(*args, **kwargs):
+            print(f'- - - - - - R U N  {func.__name__}  - - - - - -')
+            func(*args, **kwargs)
+
+        return annotated_test_case

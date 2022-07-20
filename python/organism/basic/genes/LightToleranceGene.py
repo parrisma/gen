@@ -11,15 +11,18 @@ class LightToleranceGene(Gene):
 
     _id: GeneId
     _light_tolerance: float
+    _mutation_rate: float
 
     def __init__(self,
-                 gene_value: float = None):
+                 gene_value: float = None,
+                 mutation_rate: float = 0.2):
 
         self._id = GeneId()
+        self._mutation_rate = mutation_rate
         # Range is -1 likes dark to +1 likes light
         #
         if gene_value is None:
-            self._light_tolerance = (np.random.random(1) * 2) - 1
+            self._light_tolerance = (np.random.rand() - 0.5) * 2.0
         else:
             if -1.0 <= gene_value <= 1.0:
                 self._light_tolerance = gene_value
@@ -41,15 +44,18 @@ class LightToleranceGene(Gene):
         :param comparison_gene: The gene to calculate diversity with respect to.
         :return: The relative diversity
         """
-        if self.type() is not comparison_gene.type():
+        if not isinstance(self, type(comparison_gene)):
             raise GeneTypeMismatch
-        return (self._light_tolerance - comparison_gene.value()) ^ 2
+        return (self._light_tolerance - comparison_gene.value()) ** 2
 
     def mutate(self) -> None:
         """
-        Make a 10% random mutation to the Gene
+        Make upto 10% random mutation to the Gene
         """
-        self._light_tolerance = self._light_tolerance + ((np.random.random(1) * .2) - .1)
+        r = (np.random.rand() - 0.5) * 2.0
+        if r > 1.0:
+            r = -r
+        self._light_tolerance += self._light_tolerance * (r * self._mutation_rate)
 
     def value(self):
         """

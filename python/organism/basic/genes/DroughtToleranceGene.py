@@ -11,15 +11,18 @@ class DroughtToleranceGene(Gene):
 
     _id: GeneId
     _drought_tolerance: float
+    _mutation_rate: float
 
     def __init__(self,
-                 gene_value: float = None):
+                 gene_value: float = None,
+                 mutation_rate: float = 0.1):
 
         self._id = GeneId()
+        self._mutation_rate = mutation_rate
         # Range is -1 likes wet to +1 likes dry
         #
         if gene_value is None:
-            self._drought_tolerance = (np.random.random(1) * 2) - 1
+            self._drought_tolerance = (np.random.rand() - 0.5) * 2.0
         else:
             if -1.0 <= gene_value <= 1.0:
                 self._drought_tolerance = gene_value
@@ -43,13 +46,16 @@ class DroughtToleranceGene(Gene):
         """
         if not isinstance(self, type(comparison_gene)):
             raise GeneTypeMismatch
-        return (self._drought_tolerance - comparison_gene.value()) ^ 2
+        return (self._drought_tolerance - comparison_gene.value()) ** 2
 
     def mutate(self) -> None:
         """
-        Make a 10% random mutation to the Gene
+        Make upto 10% random mutation to the Gene
         """
-        self._drought_tolerance = self._drought_tolerance + ((np.random.random(1) * .2) - .1)
+        r = (np.random.rand() - 0.5) * 2.0
+        if r > 1.0:
+            r = -r
+        self._drought_tolerance += self._drought_tolerance * (r * self._mutation_rate)
 
     def value(self):
         """
