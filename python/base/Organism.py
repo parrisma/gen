@@ -2,6 +2,7 @@ from typing import List
 from abc import ABC, abstractmethod
 from python.base.Genome import Genome
 from python.base.Metrics import Metrics
+from python.base.EnvironmentState import EnvironmentState
 from python.id.OrganismId import OrganismId
 
 
@@ -27,10 +28,12 @@ class Organism(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def run(self) -> 'Organism':
+    def run(self,
+            environment_state: EnvironmentState) -> 'Organism':
         """
         Life is divided up into single step quanta,where the environment will give every organism the opportunity
         to take a single life step before iterating ove the population again.
+        :param environment_state: The current state of the environment at the point the Organism is run
         :return: reference to our self .
         """
         raise NotImplementedError

@@ -2,26 +2,34 @@ from typing import Dict
 import concurrent.futures
 from python.main.Conf import Conf
 from python.base.Env import Env
+from python.base.Selector import Selector
+from python.base.OrganismFactory import OrganismFactory
 from python.base.Organism import Organism
-from python.organism.basic.BasicChromosome import BasicChromosome
-from python.organism.basic.BasicOrganism import BasicOrganism
-from python.organism.basic.BasicSelector import BasicSelector
-from python.organism.basic.BasicOrganismFactory import BasicOrganismFactory
+from python.organism.basic.BasicEnvironmentState import BasicEnvironmentState
 
 
-class SimpleEnv(Env):
+class BasicEnv(Env):
     _num_gen_zero_organisms: int
     _mutation_rate: float
     _crossover_rate: float
-    _population: Dict[str, BasicOrganism]
-    _selector: BasicSelector
-    _organism_factory: BasicOrganismFactory
+    _population: Dict[str, Organism]
+    _selector: Selector
+    _organism_factory: OrganismFactory
+    _attributes: BasicEnvironmentState
 
     def __init__(self,
-                 selector: BasicSelector,
-                 organism_factory: BasicOrganismFactory,
+                 hours_of_light_per_day: float,
+                 hours_since_last_rain: float,
+                 selector: Selector,
+                 organism_factory: OrganismFactory,
                  conf: Conf):
-        super(SimpleEnv, self).__init__()
+        """
+        Simple environment constructor
+        :param selector:  The selection (object) strategy to use for new generation selection
+        :param organism_factory: The factory that can create new organisms
+        :param conf: The JSON config file.
+        """
+        super(BasicEnv, self).__init__()
         self._num_gen_zero_organisms = conf.config["environment"]["num_generation_zero_organisms"]
         self._crossover_rate = conf.config["environment"]["crossover_rate"]
         self._mutation_rate = conf.config["environment"]["mutation_rate"]
@@ -29,6 +37,9 @@ class SimpleEnv(Env):
         self._metrics = {}
         self._selector = selector
         self._organism_factory = organism_factory
+        self._attributes = BasicEnvironmentState(hours_of_light_per_day=hours_of_light_per_day,
+                                                 hours_since_last_rain=hours_since_last_rain,
+                                                 population=list(self._population.values()))
         return
 
     def create_generation_zero(self):
@@ -37,7 +48,7 @@ class SimpleEnv(Env):
         """
         self._population.clear()
         for _ in range(self._num_gen_zero_organisms):
-            o = self._organism_factory.new(chromosomes=BasicChromosome())
+            o = self._organism_factory.new()
             self._population[o.get_id()] = o
             print(f'{o.get_id()} Organism is born')
 
@@ -72,7 +83,7 @@ class SimpleEnv(Env):
         Based on the organisms' fitness & diversity , establish which of the current population should
         survive into the next generation
         """
-        
+
         # new_population: Dict[str, BasicOrganism] = {}
         # new_population = self._selector.select_survivors(population_fitness=self._fitness,
         #                                                 population_diversity=self._diversity,
@@ -101,3 +112,10 @@ class SimpleEnv(Env):
             self.create_next_generation()
 
         return False
+
+    def get_state(self) -> BasicEnvironmentState:
+        """
+        Get the current state of the Environment
+        :return: The current environment state
+        """
+        raise NotImplementedError

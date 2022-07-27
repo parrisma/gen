@@ -2,25 +2,38 @@ from typing import List
 from python.id.OrganismId import OrganismId
 from python.base.Organism import Organism
 from python.base.Chromosome import Chromosome
+from python.base.EnvironmentState import EnvironmentState
 from python.organism.basic.BasicMetrics import BasicMetrics
 from python.organism.basic.BasicChromosome import BasicChromosome
+from python.organism.basic.genes.LightToleranceGene import LightToleranceGene
+from python.organism.basic.genes.DroughtToleranceGene import DroughtToleranceGene
 
 
 class BasicOrganism(Organism):
     _id: OrganismId
     _chromosomes: List[BasicChromosome]
     _metrics: BasicMetrics
+    _light_tolerance: float
+    _drought_tolerance: float
 
     def __init__(self):
         self._id = OrganismId()
         self._chromosomes = [BasicChromosome()]
         self._metrics = BasicMetrics(self.get_id())
+        # Express Chromosomes
+        for chromosome in self._chromosomes:
+            if isinstance(chromosome, BasicChromosome):
+                self._light_tolerance = chromosome.get_gene(LightToleranceGene).value()
+                self._drought_tolerance = chromosome.get_gene(DroughtToleranceGene).value()
         return
 
     def __call__(self, *args, **kwargs):
-        return self.run()
+        # return self.run()
+        # ToDo
+        return
 
-    def run(self) -> Organism:
+    def run(self,
+            environment_state: EnvironmentState) -> Organism:
         self._metrics.set_alive(False)
         return self
 

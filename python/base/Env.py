@@ -1,6 +1,5 @@
-from typing import List
 from abc import ABC, abstractmethod
-from python.base.Chromosome import Chromosome
+from python.base.EnvironmentState import EnvironmentState
 
 
 class Env(ABC):
@@ -50,5 +49,13 @@ class Env(ABC):
     def run(self) -> None:
         """
         Run the evolutionary simulation until termination condition are met
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_state(self) -> EnvironmentState:
+        """
+        Get the current state of the Environment
+        :return: The current environment state
         """
         raise NotImplementedError

@@ -1,7 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List
 from python.base.Organism import Organism
-from python.base.Genome import Genome
 
 
 class OrganismFactory(ABC):
@@ -10,11 +8,9 @@ class OrganismFactory(ABC):
     """
 
     @abstractmethod
-    def new(self,
-            genome: Genome) -> Organism:
+    def new(self) -> Organism:
         """
         Create a new organism from the given Chromosomes
-        :param genome: The Genome from which to create the organism
         :return: An Organism
         """
         raise NotImplementedError
