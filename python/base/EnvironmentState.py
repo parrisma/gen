@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Dict, List
-from python.base.Organism import Organism
+from typing import Dict
 
 
 class EnvironmentState(ABC):
@@ -13,14 +12,6 @@ class EnvironmentState(ABC):
     def get_attributes(self) -> Dict[Enum, object]:
         """
         Get the current environment attributes
-        :return: A dictionary of environment attributes.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_population(self) -> List[Organism]:
-        """
-        Get a list of current organisms that form the current population in teh environment
         :return: A dictionary of environment attributes.
         """
         raise NotImplementedError

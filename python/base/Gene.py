@@ -38,3 +38,19 @@ class Gene(ABC):
         Return the value of the Gene - the return type is specific to the Gene
         """
         raise NotImplementedError
+
+    @abstractmethod
+    def __copy__(self):
+        """
+        Deep copy the gene
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def __eq__(self, other):
+        """
+        Logical equality
+        :param other: The other Gene to test equivalence with
+        :return: True if this gene is logically equal to the 'other' given gene
+        """
+        raise NotImplementedError

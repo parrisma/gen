@@ -37,8 +37,8 @@ class BasicEnv(Env):
         self._metrics = {}
         self._selector = selector
         self._organism_factory = organism_factory
-        self._attributes = BasicEnvironmentState(hours_of_light_per_day=hours_of_light_per_day,
-                                                 hours_since_last_rain=hours_since_last_rain,
+        self._attributes = BasicEnvironmentState(avg_hours_of_light_per_day=hours_of_light_per_day,
+                                                 avg_hours_between_rain=hours_since_last_rain,
                                                  population=list(self._population.values()))
         return
 

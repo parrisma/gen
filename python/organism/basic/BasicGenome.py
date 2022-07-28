@@ -1,5 +1,5 @@
 from typing import Dict, List
-from copy import deepcopy
+from copy import copy
 import numpy as np
 from python.exceptions.NoSuchChromosomeInGenome import NoSuchChromosomeInGenome
 from python.exceptions.NotAChromosome import NotAChromosome
@@ -36,7 +36,7 @@ class BasicGenome(Genome):
         Get the Genome unique identifier
         :return: An Genome UUID
         """
-        return deepcopy(self._id)  # ensure id is immutable
+        return copy(self._id)  # ensure id is immutable
 
     def get_chromosome(self,
                        chromosome_type: type) -> Chromosome:
@@ -86,3 +86,34 @@ class BasicGenome(Genome):
             diversities.append(chromosome.get_diversity(comparison_genome.get_chromosome(type(chromosome))))
 
         return np.array(diversities).mean(axis=-1)
+
+    def __copy__(self):
+        """
+        Deep copy the Genome
+        """
+        copy_chromosomes: List[Chromosome] = []
+        for chromosome in self._chromosomes.values():
+            copy_chromosomes.append(copy(chromosome))
+        return BasicGenome(copy_chromosomes)  # NOQA
+
+    def __eq__(self, other):
+        """
+        Logical equality
+        :param other: The other Genome to test equivalence with
+        :return: True if this gene is logically equal to the 'other' given Genome
+        """
+        eq: bool = True
+        if isinstance(other, BasicGenome):
+            for chromosome_type in self.get_chromosome_types():
+                if chromosome_type in other.get_chromosome_types():
+                    if self.get_chromosome(chromosome_type) == other.get_chromosome(chromosome_type):
+                        pass
+                    else:
+                        eq = False
+                        break
+                else:
+                    eq = False
+                    break
+        else:
+            eq = False
+        return eq

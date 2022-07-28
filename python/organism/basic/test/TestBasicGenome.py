@@ -1,5 +1,6 @@
 import unittest
 import numpy as np
+from copy import copy
 from python.organism.basic.test.TestUtil import TestUtil
 from python.exceptions.NoSuchChromosomeInGenome import NoSuchChromosomeInGenome
 from python.exceptions.NotAChromosome import NotAChromosome
@@ -119,6 +120,29 @@ class TestBasicGenome(unittest.TestCase):
             self.assertTrue(g1.get_diversity(g2) == ((r1 - r3) ** 2 + (r2 - r4) ** 2) / 2.0)
 
             return
+
+    @TestUtil.test_case
+    def testGenomeCopy(self):
+        dtg = DroughtToleranceGene(.314159)
+        ltg = LightToleranceGene(-0.314159)
+        basic_chromosome = BasicChromosome(drought_gene=dtg,
+                                           light_gene=ltg)
+        genome = BasicGenome(chromosomes=[basic_chromosome])
+        genome_copy = copy(genome)
+
+        self.assertTrue(genome == genome_copy)
+        self.assertFalse(genome.get_genome_id() == genome_copy.get_genome_id())
+        for ct in genome.get_chromosome_types():
+            self.assertTrue(ct in genome_copy.get_chromosome_types())
+            ch = genome.get_chromosome(ct)
+            chc = genome_copy.get_chromosome(ct)
+            self.assertFalse(
+                ch.get_chromosome_id() == chc.get_chromosome_id())
+            for gt in ch.get_gene_types():
+                self.assertTrue(gt in chc.get_gene_types())
+                g = ch.get_gene(gt)
+                gc = chc.get_gene(gt)
+                self.assertFalse(g.get_gene_id() == gc.get_gene_id())
 
 
 if __name__ == "__main__":

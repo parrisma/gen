@@ -1,5 +1,5 @@
 from typing import Dict, List
-from copy import deepcopy
+from copy import copy, deepcopy
 import numpy as np
 from python.exceptions.NoSuchGeneTypeInChromosome import NoSuchGeneTypeInChromosome
 from python.exceptions.ChromosomeMissMatch import ChromosomeMissMatch
@@ -90,3 +90,22 @@ class BasicChromosome(Chromosome):
             diversities.append(gene.get_diversity(comparison_chromosome.get_gene(type(gene))))
 
         return np.array(diversities).mean(axis=-1)
+
+    def __copy__(self):
+        """
+        Deep copy the Chromosome
+        """
+        return BasicChromosome(light_gene=copy(self.get_gene(LightToleranceGene)),  # NOQA
+                               drought_gene=copy(self.get_gene(DroughtToleranceGene)))  # NOQA
+
+    def __eq__(self,
+               other: Chromosome):
+        """
+        Logical equality
+        :param other: The other Chromosome to test equivalence with
+        :return: True if this gene is logically equal to the 'other' given Chromosome
+        """
+        if isinstance(other, BasicChromosome):
+            return self.get_gene(DroughtToleranceGene) == other.get_gene(DroughtToleranceGene) and \
+                   self.get_gene(LightToleranceGene) == other.get_gene(LightToleranceGene)
+        return False

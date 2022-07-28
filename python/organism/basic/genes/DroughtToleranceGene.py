@@ -1,4 +1,5 @@
 import numpy as np
+from copy import copy
 from python.exceptions.GeneTypeMismatch import GeneTypeMismatch
 from python.base.Gene import Gene
 from python.id.GeneId import GeneId
@@ -63,7 +64,20 @@ class DroughtToleranceGene(Gene):
         """
         return float(self._drought_tolerance)
 
-    def __eq__(self, other):
+    def __copy__(self):
+        """
+        Deep copy the gene
+        """
+        return DroughtToleranceGene(gene_value=copy(self._drought_tolerance),
+                                    mutation_rate=copy(self._mutation_rate))
+
+    def __eq__(self,
+               other: Gene):
+        """
+        Logical equality
+        :param other: The other Gene to test equivalence with
+        :return: True if this gene is logically equal to the 'other' given gene
+        """
         if isinstance(other, DroughtToleranceGene):
             return self._drought_tolerance == other._drought_tolerance
         return False

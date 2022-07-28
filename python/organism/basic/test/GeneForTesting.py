@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 from python.base.Gene import Gene
 from python.id.GeneId import GeneId
 
@@ -38,3 +37,20 @@ class GeneForTesting(Gene):
         Return the value of the Gene - the return type is specific to the Gene
         """
         raise NotImplementedError
+
+    def __copy__(self):
+        """
+        Deep copy the gene
+        """
+        return GeneForTesting()
+
+    def __eq__(self,
+               other: Gene):
+        """
+        Logical equality
+        :param other: The other Gene to test equivalence with
+        :return: True if this gene is logically equal to the 'other' given gene
+        """
+        if isinstance(other, GeneForTesting):
+            return True
+        return False

@@ -37,7 +37,7 @@ class Chromosome(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_gene_types(self) -> List[str]:
+    def get_gene_types(self) -> List[type]:
         """
         Get all the types for the Genes in the Chromosome (as returned by Gene.type())
         :return: A list of Gene types
@@ -51,5 +51,21 @@ class Chromosome(ABC):
         Get the diversity of the Chromosome with respect to the given Chromosome
         :param comparison_chromosome: The Chromosome to calculate diversity with respect to.
         :return: The relative diversity
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def __copy__(self):
+        """
+        Deep copy the Chromosome
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def __eq__(self, other):
+        """
+        Logical equality
+        :param other: The other Chromosome to test equivalence with
+        :return: True if this gene is logically equal to the 'other' given Chromosome
         """
         raise NotImplementedError

@@ -1,6 +1,5 @@
 import unittest
-import inspect
-from typing import List, Callable
+from typing import List
 from python.organism.basic.BasicChromosome import BasicChromosome
 from python.organism.basic.genes.DroughtToleranceGene import DroughtToleranceGene
 from python.organism.basic.genes.LightToleranceGene import LightToleranceGene

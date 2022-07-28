@@ -2,11 +2,12 @@ from typing import List
 from abc import ABC, abstractmethod
 from python.id.GenomeId import GenomeId
 from python.base.Chromosome import Chromosome
+from python.base.Gene import Gene
 
 
 class Genome(ABC):
     """
-    A the complete collection of Chromosomes that describe an Organism.
+    The complete collection of Chromosomes that describe an Organism.
     """
 
     @abstractmethod
@@ -37,7 +38,7 @@ class Genome(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_chromosome_types(self) -> List[str]:
+    def get_chromosome_types(self) -> List[type]:
         """
         Get all the types for the chromosomes in the Genome
         :return: A list of Chromosome types
@@ -53,3 +54,34 @@ class Genome(ABC):
         :return: The relative diversity
         """
         raise NotImplementedError
+
+    @abstractmethod
+    def __copy__(self):
+        """
+        Deep copy the Genome
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def __eq__(self, other):
+        """
+        Logical equality
+        :param other: The other Genome to test equivalence with
+        :return: True if this gene is logically equal to the 'other' given Genome
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def gene_list(cls,
+                  genome: 'Genome') -> List[Gene]:
+        """
+        Extract a list of all Genes in the Genome.
+        :param genome: The genome to extract Genes from
+        :return: A list of all the genes in the Genome
+        """
+        genes: List[Gene] = []
+        for chromosome_type in genome.get_chromosome_types():
+            chromosome = genome.get_chromosome(chromosome_type)
+            for gene_type in chromosome.get_gene_types():
+                genes.append(chromosome.get_gene(gene_type))
+        return genes

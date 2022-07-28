@@ -19,7 +19,18 @@ class EntityId(str):
         """
         return copy(self._id)  # Ensure immutability of Id
 
+    def __eq__(self,
+               other):
+        if isinstance(other, EntityId):
+            if self._id == other._id:
+                return True
+        return False
+
     def __str__(self) -> str:
+        """
+        String representation of the entity Id
+        :return: The entity id as string
+        """
         return self.as_str()
 
     def __repr__(self) -> str:

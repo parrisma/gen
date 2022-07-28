@@ -6,5 +6,5 @@ class BasicEnvironmentAttributes(Enum):
     """
     The attributes of the basic environment
     """
-    HOURS_OF_LIGHT_PER_DAY = auto()
-    HOURS_SINCE_LAST_RAIN = auto()
+    AVG_HOURS_OF_LIGHT_PER_DAY = auto()
+    AVG_HOURS_BETWEEN_RAIN = auto()

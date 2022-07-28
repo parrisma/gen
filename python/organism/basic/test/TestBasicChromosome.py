@@ -1,5 +1,6 @@
 import unittest
 import numpy as np
+from copy import copy
 from python.organism.basic.test.TestUtil import TestUtil
 from python.organism.basic.test.GeneForTesting import GeneForTesting
 from python.organism.basic.BasicChromosome import BasicChromosome
@@ -107,5 +108,24 @@ class TestBasicChromosome(unittest.TestCase):
 
             return
 
-        if __name__ == "__main__":
-            unittest.main()
+    @TestUtil.test_case
+    def testChromosomeCopy(self):
+        dtg = DroughtToleranceGene(.314159)
+        ltg = LightToleranceGene(-0.314159)
+        basic_chromosome = BasicChromosome(drought_gene=dtg,
+                                           light_gene=ltg)
+        basic_chromosome_copy = copy(basic_chromosome)
+        self.assertTrue(basic_chromosome == basic_chromosome_copy)
+        self.assertFalse(basic_chromosome.get_chromosome_id() == basic_chromosome_copy.get_chromosome_id())
+        self.assertFalse(
+            basic_chromosome.get_gene(DroughtToleranceGene).get_gene_id() == basic_chromosome_copy.get_gene(
+                DroughtToleranceGene).get_gene_id())
+        self.assertFalse(
+            basic_chromosome.get_gene(LightToleranceGene).get_gene_id() == basic_chromosome_copy.get_gene(
+                LightToleranceGene).get_gene_id())
+
+        return
+
+
+if __name__ == "__main__":
+    unittest.main()

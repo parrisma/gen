@@ -69,7 +69,20 @@ class LightToleranceGene(Gene):
         """
         return self.__class__.__name__
 
-    def __eq__(self, other):
+    def __copy__(self):
+        """
+        Deep copy the gene
+        """
+        return LightToleranceGene(gene_value=self._light_tolerance,
+                                  mutation_rate=self._mutation_rate)
+
+    def __eq__(self,
+               other: Gene):
+        """
+        Logical equality
+        :param other: The other Gene to test equivalence with
+        :return: True if this gene is logically equal to the 'other' given gene
+        """
         if isinstance(other, LightToleranceGene):
             return self._light_tolerance == other._light_tolerance
         return False

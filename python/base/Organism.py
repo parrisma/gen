@@ -1,7 +1,10 @@
 from typing import List
 from abc import ABC, abstractmethod
+from copy import copy
+
+import numpy as np
+
 from python.base.Genome import Genome
-from python.base.Metrics import Metrics
 from python.base.EnvironmentState import EnvironmentState
 from python.id.OrganismId import OrganismId
 
@@ -29,7 +32,7 @@ class Organism(ABC):
 
     @abstractmethod
     def run(self,
-            environment_state: EnvironmentState) -> 'Organism':
+            environment_state: 'EnvironmentState') -> 'Organism':
         """
         Life is divided up into single step quanta,where the environment will give every organism the opportunity
         to take a single life step before iterating ove the population again.
@@ -79,12 +82,34 @@ class Organism(ABC):
         """
         raise NotImplementedError
 
-    @abstractmethod
-    def __call__(self, *_, **__) -> Metrics:
+    @classmethod
+    def crossover_genomes(cls,
+                          mix_rate: float,
+                          to_organism: 'Organism',
+                          from_organism: 'Organism') -> Genome:
         """
-        Organisms are callable, where callable means to execute the run method
-        :param _:
-        :param __:
-        :return: Metrics collected during the run cycle for the Organism.
+        Based on the mix rate return a list of chromosomes with genes mixed between the Organism and the given
+        chromosomes.
+        :param mix_rate: The rate of mixing of Genes between the Chromosomes
+        :param to_organism: The organism to cross genes to
+        :param from_organism: The organism to cross genes from
+        :return: The Genome resulting from the crossover.
         """
-        raise NotImplementedError
+        if mix_rate > 1.0 or mix_rate < 0.0:
+            raise ValueError(f'mix_rate is a probability and must be in range 0.0 to 1.0 - given {mix_rate}')
+
+        cross_genome = copy(from_organism.get_genome())
+        current_genes = Genome.gene_list(to_organism.get_genome())
+        lcg = len(current_genes)
+        current_genes.extend([None] * lcg)  # NOQA - dummy entries selected by residual probabilty
+        prob_func: List[float] = ([mix_rate / lcg] * lcg)
+        prob_func.extend([(1.0 - mix_rate) / lcg] * lcg)
+        mix_genes = np.random.choice(current_genes, p=prob_func, size=lcg, replace=False)
+        cross_genes = Genome.gene_list(cross_genome)
+        for mix_gene in mix_genes:
+            if mix_gene is not None:
+                for cross_gene in cross_genes:
+                    if isinstance(cross_gene, type(mix_gene)):
+                        cross_gene = copy(mix_gene)  # Assign by reference will update gene in cross_genome
+
+        return cross_genome
