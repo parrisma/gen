@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import numpy as np
 from python.id.GeneId import GeneId
 
 
@@ -26,9 +27,11 @@ class Gene(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def mutate(self) -> None:
+    def mutate(self,
+               step_size: float) -> None:
         """
         Make a random mutation to the Gene
+        :param step_size: The size of the mutation to make +/- from current value
         """
         raise NotImplementedError
 
@@ -54,3 +57,24 @@ class Gene(ABC):
         :return: True if this gene is logically equal to the 'other' given gene
         """
         raise NotImplementedError
+
+    @classmethod
+    def mutate_float(cls,
+                     current_value: float,
+                     mutation_rate: float,
+                     step_size: float) -> float:
+        """
+        Mutate the current value randomly by + or - the step size
+        :param current_value: The value to be mutates
+        :param mutation_rate: The probability of a mutation happening as a result of this call
+        :param step_size: The step size of the mutation
+        :return: the value after the mutation
+        """
+        new_value: float = current_value
+        if np.random.rand() <= mutation_rate:
+            if np.random.rand() > 0.5:
+                new_value += step_size
+            else:
+                new_value -= step_size
+
+        return new_value

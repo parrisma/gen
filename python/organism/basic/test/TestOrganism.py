@@ -73,7 +73,7 @@ class TestOrganism(unittest.TestCase):
 
     @TestUtil.test_case
     def testBasicOrganismCrossOver(self):
-        for _ in range(100):
+        for _ in range(1000):
             r1, r2, r3, r4 = np.random.random(4)
             c1 = BasicChromosome(drought_gene=DroughtToleranceGene(r1), light_gene=LightToleranceGene(r2))
             c2 = BasicChromosome(drought_gene=DroughtToleranceGene(r3), light_gene=LightToleranceGene(r4))
@@ -95,5 +95,33 @@ class TestOrganism(unittest.TestCase):
             new_genes = Genome.gene_list(new_organism.get_genome())
             expected_genes = Genome.gene_list(basic_organism2.get_genome())
             self.assertTrue(new_genes == expected_genes)
+
+        return
+
+    @TestUtil.test_case
+    def testBasicOrganismMutation(self):
+        for _ in range(1000):
+            for mutation_rate in [1.0, 0.0]:
+                # Mutation rate of 100% => guarantee of mutation in all genes
+                r1, r2, step_size = np.random.random(3)
+                for ss in [step_size, {DroughtToleranceGene: step_size, LightToleranceGene: step_size}]:
+                    c1 = BasicChromosome(drought_gene=DroughtToleranceGene(r1, mutation_rate=mutation_rate),
+                                         light_gene=LightToleranceGene(r2, mutation_rate=mutation_rate))
+                    g1 = BasicGenome([c1])
+                    basic_organism1 = BasicOrganism(genome=g1)
+                    new_organism = BasicOrganism(basic_organism1.mutate(step_size=ss))  # NOQA
+                    new_genes = Genome.gene_list(new_organism.get_genome())
+                    old_genes = Genome.gene_list(basic_organism1.get_genome())
+                    expected_genes = dict()
+                    for og in old_genes:
+                        expected_genes[type(og)] = og.value()
+                    for ng in new_genes:
+                        if isinstance(ss, dict):
+                            self.assertTrue(
+                                np.absolute(ng.value() - expected_genes.get(type(ng))) - (
+                                        ss.get(type(ng)) * mutation_rate) < 1e-06)
+                        else:
+                            self.assertTrue(
+                                np.absolute(ng.value() - expected_genes.get(type(ng))) - (ss * mutation_rate) < 1e-06)
 
         return

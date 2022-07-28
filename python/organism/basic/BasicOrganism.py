@@ -1,10 +1,8 @@
-from typing import List, Dict
+from typing import List, Dict, Union
 import numpy as np
 from copy import copy
 from python.id.OrganismId import OrganismId
 from python.base.Organism import Organism
-from python.base.Gene import Gene
-from python.base.Chromosome import Chromosome
 from python.base.Genome import Genome
 from python.base.EnvironmentState import EnvironmentState
 from python.base.Metrics import Metrics
@@ -107,13 +105,24 @@ class BasicOrganism(Organism):
         return Organism.crossover_genomes(from_organism=organism, to_organism=self, mix_rate=mix_rate)
 
     def mutate(self,
-               mutation_rate: float) -> Genome:
+               step_size: Union[float, Dict[type, float]]) -> Genome:
         """
         Based on a defined <mutation_rate>. introduce random perturbation into the Organisms populations Genes
-        :param mutation_rate: The rate at which Genes are affected by random perturbations
+        :param step_size: An absolute step size as float to be applied to all gene types ot
         :return: The Genome resulting from the mutation.
         """
-        raise NotImplementedError
+        mutated_genome = copy(self.get_genome())
+        genes = Genome.gene_list(mutated_genome)
+        for gene in genes:
+            if isinstance(step_size, dict):
+                if type(gene) in step_size.keys():
+                    gene.mutate(step_size=step_size.get(type(gene)))
+                else:
+                    raise ValueError(f'No step size supplied for gene type {str(type(gene))}')
+            else:
+                gene.mutate(step_size=float(step_size))  # NOQA
+
+        return mutated_genome
 
     def __str__(self) -> str:
         return self.get_id()

@@ -19,7 +19,11 @@ class DroughtToleranceGene(Gene):
                  mutation_rate: float = 0.1):
 
         self._id = GeneId()
+
+        if mutation_rate > 1.0 or mutation_rate < 0.0:
+            raise ValueError(f'mutation_rate is a probability and must be in range 0.0 to 1.0 - given {mutation_rate}')
         self._mutation_rate = mutation_rate
+
         # Range is -1 likes wet to +1 likes dry
         #
         if gene_value is None:
@@ -49,14 +53,16 @@ class DroughtToleranceGene(Gene):
             raise GeneTypeMismatch
         return (self._drought_tolerance - comparison_gene.value()) ** 2
 
-    def mutate(self) -> None:
+    def mutate(self,
+               step_size: float) -> None:
         """
         Make upto 10% random mutation to the Gene
+        :param step_size: The size of the mutation to make +/- from current value
         """
-        r = (np.random.rand() - 0.5) * 2.0
-        if r > 1.0:
-            r = -r
-        self._drought_tolerance += self._drought_tolerance * (r * self._mutation_rate)
+        self._drought_tolerance = Gene.mutate_float(current_value=self._drought_tolerance,
+                                                    mutation_rate=self._mutation_rate,
+                                                    step_size=step_size)
+        return
 
     def value(self):
         """

@@ -18,7 +18,11 @@ class LightToleranceGene(Gene):
                  mutation_rate: float = 0.2):
 
         self._id = GeneId()
+
+        if mutation_rate > 1.0 or mutation_rate < 0.0:
+            raise ValueError(f'mutation_rate is a probability and must be in range 0.0 to 1.0 - given {mutation_rate}')
         self._mutation_rate = mutation_rate
+
         # Range is -1 likes dark to +1 likes light
         #
         if gene_value is None:
@@ -48,14 +52,16 @@ class LightToleranceGene(Gene):
             raise GeneTypeMismatch
         return (self._light_tolerance - comparison_gene.value()) ** 2
 
-    def mutate(self) -> None:
+    def mutate(self,
+               step_size: float) -> None:
         """
         Make upto 10% random mutation to the Gene
+        :param step_size: The size of the mutation to make +/- from current value
         """
-        r = (np.random.rand() - 0.5) * 2.0
-        if r > 1.0:
-            r = -r
-        self._light_tolerance += self._light_tolerance * (r * self._mutation_rate)
+        self._light_tolerance = Gene.mutate_float(current_value=self._light_tolerance,
+                                                  mutation_rate=self._mutation_rate,
+                                                  step_size=step_size)
+        return
 
     def value(self):
         """

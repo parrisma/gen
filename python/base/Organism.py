@@ -11,7 +11,7 @@ from python.id.OrganismId import OrganismId
 
 class Organism(ABC):
     """
-    The interface for the entity 'living' and 'evolving' in the environment.
+    The interface for the entity 'living' and 'evolving' in the environment
     """
 
     @abstractmethod
@@ -35,7 +35,7 @@ class Organism(ABC):
             environment_state: 'EnvironmentState') -> 'Organism':
         """
         Life is divided up into single step quanta,where the environment will give every organism the opportunity
-        to take a single life step before iterating ove the population again.
+        to take a single life step before iterating ove the population again
         :param environment_state: The current state of the environment at the point the Organism is run
         :return: reference to our self .
         """
@@ -65,7 +65,7 @@ class Organism(ABC):
                   organism: 'Organism') -> Genome:
         """
         Based on the mix rate return a Genome with genes mixed between the Organism and the given
-        Organism.
+        Organism
         :param mix_rate: The rate of mixing of Genes between the Chromosomes
         :param organism: The organism to cross with
         :return: The Chromosomes resulting from the crossover.
@@ -74,10 +74,10 @@ class Organism(ABC):
 
     @abstractmethod
     def mutate(self,
-               mutation_rate: float) -> Genome:
+               step_size: float) -> Genome:
         """
-        Based on a defined <mutation_rate>. introduce random perturbation into the Organisms Genome
-        :param mutation_rate: The rate at which Genes are affected by random perturbations
+        Randomly mutate the genes that comprise the Genome
+        :param step_size: The size of the mutation to randomly apply + / -  the current value of the mutated genes
         :return: The Genome resulting from the mutation.
         """
         raise NotImplementedError
@@ -88,8 +88,7 @@ class Organism(ABC):
                           to_organism: 'Organism',
                           from_organism: 'Organism') -> Genome:
         """
-        Based on the mix rate return a list of chromosomes with genes mixed between the Organism and the given
-        chromosomes.
+        Based on the mix rate return a list of chromosomes with genes mixed from -> to Organism
         :param mix_rate: The rate of mixing of Genes between the Chromosomes
         :param to_organism: The organism to cross genes to
         :param from_organism: The organism to cross genes from
