@@ -5,7 +5,9 @@ from python.organism.basic.genes.DroughtToleranceGene import DroughtToleranceGen
 from python.organism.basic.genes.LightToleranceGene import LightToleranceGene
 
 
-class TestUtil:
+class UtilsForTesting:
+    MARGIN_OF_ERROR: float = 1e-06
+
     @classmethod
     def verify_matching_basic_chromosome_and_genes(cls,
                                                    test_case: unittest.TestCase,

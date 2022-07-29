@@ -31,7 +31,7 @@ class BasicOrganism(Organism):
         :param lim: The limit
         :return: The value clipped in range -lim to +lim
         """
-        return np.sign(v) * np.maximum(np.absolute(v), lim)
+        return np.sign(v) * np.minimum(np.absolute(v), lim)
 
     def __init__(self,
                  genome: BasicGenome):
@@ -52,13 +52,16 @@ class BasicOrganism(Organism):
         :return: A reference to this (self) Organism after it has executed a life cycle.
         """
         bm: Dict[BasicEnvironmentAttributes, object] = environment_state.get_attributes()  # NOQA
-        ave_light = BasicOrganism.__limit(bm.get(BasicEnvironmentAttributes.AVG_HOURS_OF_LIGHT_PER_DAY), 24)
-        ave_drought = BasicOrganism.__limit(bm.get(BasicEnvironmentAttributes.AVG_HOURS_BETWEEN_RAIN), (24 * 7))
 
+        ave_light = BasicOrganism.__limit(bm.get(BasicEnvironmentAttributes.AVG_HOURS_OF_LIGHT_PER_DAY), 24)
         light_fitness = (1 - np.sign(self._light_tolerance) * np.power(self._light_tolerance, 2)) + (
                 np.power(ave_light / 24, 2) * 2 * np.sign(self._light_tolerance))
 
-        self._metrics = BasicMetrics(alive=True, fitness=light_fitness)
+        ave_drought = BasicOrganism.__limit(bm.get(BasicEnvironmentAttributes.AVG_HOURS_BETWEEN_RAIN), (24 * 7))
+        drought_fitness = (1 - np.sign(self._drought_tolerance) * np.power(self._drought_tolerance, 2)) + (
+                np.power(ave_drought / 24, 2) * 2 * np.sign(self._drought_tolerance))
+
+        self._metrics = BasicMetrics(alive=True, fitness=(light_fitness + drought_fitness) / 2.0)
 
         return self
 
@@ -69,7 +72,31 @@ class BasicOrganism(Organism):
         """
         return self._metrics.is_alive()
 
+    def fitness(self) -> float:
+        """
+        Return a number that represents the fitness of teh organism.
+
+        Until the organism has run at least once the fitness will be the value for least-fit.
+
+        :return: Organism fitness expressed as a float.
+        """
+        return self._metrics.get_fitness()
+
+    def metrics(self) -> Metrics:
+        """
+        Return the current metrics for the organism
+
+        Until the organism has run at least once the metrics will be default values
+
+        :return: Organism fitness expressed as a float.
+        """
+        return copy(self._metrics)
+
     def get_id(self) -> str:
+        """
+        Get the globally unique id of the Organism
+        :return: The organisms globally unique id as string.
+        """
         return self._id.as_str()
 
     def get_relative_diversity(self,
@@ -94,7 +121,7 @@ class BasicOrganism(Organism):
 
     def crossover(self,
                   mix_rate: float,
-                  organism: 'BasicOrganism') -> Genome:
+                  organism: 'Organism') -> Genome:
         """
         Based on the mix rate return a list of chromosomes with genes mixed between the Organism and the given
         chromosomes.
@@ -124,8 +151,32 @@ class BasicOrganism(Organism):
 
         return mutated_genome
 
+    def __eq__(self, other):
+        """
+        Test equality between BasicOrganism and a given object
+        :param other: Object to check equality with.
+        :return: True if BasicOrganism fields match
+        Note: This is not an identity check, so we do not compare the id
+        """
+        if isinstance(other, BasicOrganism):
+            if self._genome == other.get_genome():
+                if self._light_tolerance == other._light_tolerance:
+                    if self._drought_tolerance == other._drought_tolerance:
+                        return True
+        return False
+
     def __str__(self) -> str:
-        return self.get_id()
+        """
+        Basic Organism as string
+        :return: Organism as String
+        """
+        return f' BasicOrganism [{self.get_id()}]'
 
     def __repr__(self, *args, **kwargs) -> str:
+        """
+        Basic Organism as printable form
+        :param args:
+        :param kwargs:
+        :return: Organism as printable string
+        """
         return self.__str__()

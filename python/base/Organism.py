@@ -1,10 +1,9 @@
 from typing import List
 from abc import ABC, abstractmethod
 from copy import copy
-
 import numpy as np
-
 from python.base.Genome import Genome
+from python.base.Metrics import Metrics
 from python.base.EnvironmentState import EnvironmentState
 from python.id.OrganismId import OrganismId
 
@@ -27,6 +26,28 @@ class Organism(ABC):
         """
         Establish if the organism is still alive an operable in the environment
         :return: True, if the organism is alive
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def fitness(self) -> float:
+        """
+        Return a number that represents the fitness of teh organism.
+
+        Until the organism has run at least once the fitness will be the value for least-fit.
+
+        :return: Organism fitness expressed as a float.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def metrics(self) -> Metrics:
+        """
+        Return the current metrics for the organism
+
+        Until the organism has run at least once the metrics will be default values
+
+        :return: Organism fitness expressed as a float.
         """
         raise NotImplementedError
 
@@ -81,6 +102,44 @@ class Organism(ABC):
         :return: The Genome resulting from the mutation.
         """
         raise NotImplementedError
+
+    @abstractmethod
+    def __eq__(self, other):
+        """
+        Test equality between BasicOrganism and a given object
+        :param other: Object to check equality with.
+        :return: True if BasicOrganism fields match
+        Note: This is not an identity check, so we do not compare the id
+        """
+        raise NotImplementedError(
+            "__eq__ must be implemented by all Organisms")
+
+    @abstractmethod
+    def __str__(self):
+        """
+        Basic Organism as string
+        :return: Organism as String
+        """
+        raise NotImplementedError(
+            "__str__ must be implemented by all Organisms")
+
+    @abstractmethod
+    def __repr__(self, *args, **kwargs):
+        """
+        Basic Organism as printable form
+        :param args:
+        :param kwargs:
+        :return: Organism as printable string
+        """
+        raise NotImplementedError(
+            "__repr__ must be implemented by all Organisms")
+
+    def __hash__(self):
+        """
+        Makes organisms hashable for use in dictionaries
+        :return: A unique has of the Organism
+        """
+        return hash(self.__repr__())
 
     @classmethod
     def crossover_genomes(cls,

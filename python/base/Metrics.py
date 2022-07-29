@@ -33,3 +33,22 @@ class Metrics(ABC):
         :return: Fitness expressed as a float
         """
         raise NotImplementedError
+
+    @abstractmethod
+    def __copy__(self):
+        """
+        Create a copy of the metrics.
+        :return: A copy of the current metrics
+        """
+        raise NotImplementedError(
+            "__copy__ must be implemented by all Metrics")
+
+    @abstractmethod
+    def __eq__(self, other):
+        """
+        Logical equality
+        :param other: The other object to test equivalence with
+        :return: True if this gene is logically equal to the 'other' given object
+        """
+        raise NotImplementedError(
+            "__copy__ must be implemented by all Metrics")

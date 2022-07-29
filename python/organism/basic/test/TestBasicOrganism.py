@@ -2,18 +2,20 @@ import unittest
 import numpy as np
 from python.base.Genome import Genome
 from python.organism.basic.BasicOrganism import BasicOrganism
-from python.organism.basic.test.TestUtil import TestUtil
+from python.organism.basic.test.UtilsForTesting import UtilsForTesting
 from python.organism.basic.BasicGenome import BasicGenome
 from python.organism.basic.BasicChromosome import BasicChromosome
 from python.organism.basic.genes.DroughtToleranceGene import DroughtToleranceGene
 from python.organism.basic.genes.LightToleranceGene import LightToleranceGene
+from python.organism.basic.BasicEnvironmentAttributes import BasicEnvironmentAttributes
+from python.organism.basic.BasicEnvironmentState import BasicEnvironmentState
 
 
-class TestOrganism(unittest.TestCase):
+class TestBasicOrganism(unittest.TestCase):
     _run: int
 
     def __init__(self, *args, **kwargs):
-        super(TestOrganism, self).__init__(*args, **kwargs)
+        super(TestBasicOrganism, self).__init__(*args, **kwargs)
         return
 
     @classmethod
@@ -22,15 +24,15 @@ class TestOrganism(unittest.TestCase):
         return
 
     def setUp(self) -> None:
-        TestOrganism._run += 1
-        print(f'- - - - - - C A S E {TestOrganism._run} Start - - - - - -')
+        TestBasicOrganism._run += 1
+        print(f'- - - - - - C A S E {TestBasicOrganism._run} Start - - - - - -')
         return
 
     def tearDown(self) -> None:
-        print(f'- - - - - - C A S E {TestOrganism._run} Passed - - - - - -\n')
+        print(f'- - - - - - C A S E {TestBasicOrganism._run} Passed - - - - - -\n')
         return
 
-    @TestUtil.test_case
+    @UtilsForTesting.test_case
     def testBasicOrganismConstruction(self):
         r1: float = 0.3141
         r2: float = -0.678
@@ -42,7 +44,7 @@ class TestOrganism(unittest.TestCase):
         self.assertTrue(g2.get_chromosome(BasicChromosome).get_gene(LightToleranceGene).value() == r2)
         return
 
-    @TestUtil.test_case
+    @UtilsForTesting.test_case
     def testBasicOrganismDiversity(self):
         r1, r2, r3, r4, r5, r6 = (-1.0, -1.0, 1.0, 1.0, -1.0, 1.0)
         c1 = BasicChromosome(drought_gene=DroughtToleranceGene(r1), light_gene=LightToleranceGene(r2))
@@ -71,7 +73,7 @@ class TestOrganism(unittest.TestCase):
 
         return
 
-    @TestUtil.test_case
+    @UtilsForTesting.test_case
     def testBasicOrganismCrossOver(self):
         for _ in range(1000):
             r1, r2, r3, r4 = np.random.random(4)
@@ -98,12 +100,12 @@ class TestOrganism(unittest.TestCase):
 
         return
 
-    @TestUtil.test_case
+    @UtilsForTesting.test_case
     def testBasicOrganismMutation(self):
-        for _ in range(1000):
-            for mutation_rate in [1.0, 0.0]:
-                # Mutation rate of 100% => guarantee of mutation in all genes
+        for _ in range(1000):  # repeat a statistically significant number of time.
+            for mutation_rate in [1.0, 0.0]:  # Mutation rate of 100% => guarantee , 0% => no mutation
                 r1, r2, step_size = np.random.random(3)
+                # Test with fixed float step size for all Genes and gene specific step size.
                 for ss in [step_size, {DroughtToleranceGene: step_size, LightToleranceGene: step_size}]:
                     c1 = BasicChromosome(drought_gene=DroughtToleranceGene(r1, mutation_rate=mutation_rate),
                                          light_gene=LightToleranceGene(r2, mutation_rate=mutation_rate))
@@ -119,9 +121,27 @@ class TestOrganism(unittest.TestCase):
                         if isinstance(ss, dict):
                             self.assertTrue(
                                 np.absolute(ng.value() - expected_genes.get(type(ng))) - (
-                                        ss.get(type(ng)) * mutation_rate) < 1e-06)
+                                        ss.get(type(ng)) * mutation_rate) < UtilsForTesting.MARGIN_OF_ERROR)
                         else:
                             self.assertTrue(
-                                np.absolute(ng.value() - expected_genes.get(type(ng))) - (ss * mutation_rate) < 1e-06)
+                                np.absolute(ng.value() - expected_genes.get(type(ng))) - (
+                                        ss * mutation_rate) < UtilsForTesting.MARGIN_OF_ERROR)
+
+        return
+
+    @UtilsForTesting.test_case
+    def testBasicOrganismFitness(self):
+        c1 = BasicChromosome(drought_gene=DroughtToleranceGene(0.5, mutation_rate=0.0),
+                             light_gene=LightToleranceGene(0.5, mutation_rate=0.0))
+        g1 = BasicGenome([c1])
+        basic_organism1 = BasicOrganism(genome=g1)
+        organism = BasicOrganism(basic_organism1.mutate(step_size=0.0))  # NOQA
+
+        env_state = BasicEnvironmentState(avg_hours_of_light_per_day=12,
+                                          avg_hours_between_rain=80,
+                                          population=[organism])
+
+        organism.run(environment_state=env_state)
+        organism.fitness()
 
         return

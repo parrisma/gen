@@ -21,6 +21,11 @@ class EntityId(str):
 
     def __eq__(self,
                other):
+        """
+        ID equality check
+        :param other: Id to check equality to
+        :return: True if Id's are equivelant
+        """
         if isinstance(other, EntityId):
             if self._id == other._id:
                 return True
@@ -31,7 +36,14 @@ class EntityId(str):
         String representation of the entity Id
         :return: The entity id as string
         """
-        return self.as_str()
+        return str(self._id)
 
     def __repr__(self) -> str:
         return self.as_str()
+
+    def __hash__(self):
+        """
+        Implement hash so Id's can be used in dictionaries etc
+        :return:
+        """
+        return hash(self._id)

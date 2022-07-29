@@ -32,6 +32,6 @@ class BasicEnvironmentState(EnvironmentState):
         Get the current environment attributes
         :return: A dictionary of environment attributes.
         """
-        return {BasicEnvironmentAttributes.HOURS_SINCE_LAST_RAIN: self._avg_hours_between_rain,
-                BasicEnvironmentAttributes.HOURS_OF_LIGHT_PER_DAY: self._avg_hours_of_light_per_day
+        return {BasicEnvironmentAttributes.AVG_HOURS_BETWEEN_RAIN: self._avg_hours_between_rain,
+                BasicEnvironmentAttributes.AVG_HOURS_OF_LIGHT_PER_DAY: self._avg_hours_of_light_per_day
                 }
