@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.animation import FuncAnimation
 from python.visualise.PlotUtil import PlotUtil
+from python.visualise.PlotAnimationData import PlotAnimationData
 
 
 class SurfacePlot:
@@ -34,7 +35,7 @@ class SurfacePlot:
         :param x: The values of X to plot for (must have same length as Y)
         :param y: The values of Y to plot for (must have same length as X)
         :param func: The function of x,y to render
-        :param points: A list of points to overlay onto the contour
+        :param point: A points to overlay onto the contour
         :param x_ticks: X Axis ticks, (start, end, step) or the number of steps to auto-scale ticks to function
         :param y_ticks: Y Axis ticks, (start, end, step) or the number of steps to auto-scale ticks to function
         :param z_ticks: Z Axis ticks, (start, end, step) or the number of steps to auto-scale ticks to function
@@ -52,8 +53,7 @@ class SurfacePlot:
 
         self._point: Tuple[float, float, float] = point
         self._plotted_point = None  # Point to Animate
-        self._x_animation_data: np.ndarray = None
-        self._y_animation_data: np.ndarray = None
+        self._plot_animation_data = None
         self._num_animation_points: int = None
         self._rotate_plot: bool = True
         self._rotate_step: int = 1
@@ -127,8 +127,10 @@ class SurfacePlot:
         if i > self._num_animation_points:
             raise ValueError(f' Animation frame index {i} is greater than number of animation points')
 
-        x: float = self._x_animation_data[i]
-        y: float = self._y_animation_data[i]
+        # check shape
+        data_points_for_frame: np.ndarray = self._plot_animation_data.get_data_for_frame(frame_idx=i)
+        x: float = data_points_for_frame[0][0]
+        y: float = data_points_for_frame[0][1]
         z: float = self._func(x, y)
         self._plotted_point.set_data(x, y)
         self._plotted_point.set_3d_properties(z)
@@ -142,31 +144,29 @@ class SurfacePlot:
             return self._point,
 
     def animate(self,
-                x_animation_data: np.ndarray,
-                y_animation_data: np.ndarray,
+                plot_animation_data: PlotAnimationData,
                 frame_interval: int = 30,
                 show_time: int = 60,
                 rotate_plot: bool = True,
                 rotate_step: int = 1):
         """
         Animate the plot.
-        :param x_animation_data: The x points over which to animate the animated point
-        :param y_animation_data: The z points over which to animate the animated point
+        :param plot_animation_data: Class to supply animation data on demand frame by frame
         :param frame_interval: The interval between frame updates in milli-sec, default = 30 ms
         :param show_time: The number of seconds to show the animation for, default = 60 secs.
         :param rotate_plot: If True rotate the plot during the animation
         :param rotate_step: The numbers of degrees to rotate the plot by for each animation update
         :return:
         """
-        if len(x_animation_data) != len(y_animation_data):
-            raise ValueError("X and Y animation data points must have same length")
-
-        self._x_animation_data = x_animation_data
-        self._y_animation_data = y_animation_data
-        self._num_animation_points = len(self._x_animation_data)
+        self._plot_animation_data = plot_animation_data
+        self._num_animation_points = plot_animation_data.num_points()
 
         self._rotate_plot = rotate_plot
         self._rotate_step = rotate_step
+
+        p_shape = self._plot_animation_data.point_shape()
+        if p_shape[0] != 2:
+            raise ValueError(f'Animation expected x,y values, but shape was {str(p_shape)}')
 
         _ = FuncAnimation(self._fig,
                           func=self,

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import sys
+from typing import Tuple
 import numpy as np
 
 
@@ -28,7 +29,7 @@ class PlotAnimationData(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def point_shape(self):
+    def point_shape(self) -> Tuple:
         """
         The numpy shape of a single point
         :return: The numpy shape of a single point

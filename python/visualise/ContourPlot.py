@@ -46,6 +46,7 @@ class ContourPlot:
         self._animation_point_cmap = matplotlib.cm.get_cmap('brg')
         self._z_min = sys.float_info.max
         self._z_max = sys.float_info.min
+        self._use_func_for_z = True
 
         self._func: Callable[[float, float], float] = func
         self._x, self._y, self._z = PlotUtil.render_function(x=x, y=y, func=self._func)
@@ -114,11 +115,13 @@ class ContourPlot:
 
     def animate(self,
                 plot_animation_data: PlotAnimationData,
+                use_func_for_z: bool = True,
                 frame_interval: int = 30,
                 show_time: int = 60):
         """
-        Animate the plot.
+        Animate the plot
         :param plot_animation_data: Class to supply animation data on demand frame by frame
+        :param use_func_for_z: If True use the supplied function to calculate z from x,y
         :param frame_interval: The interval between frame updates in milli-sec, default = 30 ms
         :param show_time: The number of seconds to show the animation for, default = 60 secs.
         :return:
@@ -127,6 +130,12 @@ class ContourPlot:
         self._num_animation_points = plot_animation_data.num_points()
 
         # check shape is a 2d point
+        self._use_func_for_z = use_func_for_z
+        p_shape = self._plot_animation_data.point_shape()
+        if self._use_func_for_z and p_shape[0] != 2:
+            raise ValueError(f'Animation expected x,y values, but shape was {str(p_shape)}')
+        elif not self._use_func_for_z and p_shape[0] != 3:
+            raise ValueError(f'Animation expected x,y,z values, but shape was {str(p_shape)}')
 
         _ = FuncAnimation(self._fig,
                           func=self,

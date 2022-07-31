@@ -1,4 +1,5 @@
 import numpy as np
+from typing import Tuple
 from python.visualise.PlotAnimationData import PlotAnimationData
 
 
@@ -19,5 +20,5 @@ class PreCalcPointPlotAnimationDataForTesting(PlotAnimationData):
     def num_points(self) -> int:
         return np.shape(self._data)[0]
 
-    def point_shape(self):
+    def point_shape(self) -> Tuple:
         return np.shape(self._data[0][0])
