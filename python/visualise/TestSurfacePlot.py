@@ -3,6 +3,7 @@ import numpy as np
 from python.organism.basic.test.UtilsForTesting import UtilsForTesting
 from python.visualise.SurfacePlot import SurfacePlot
 from python.visualise.ContourPlot import ContourPlot
+from python.visualise.PreCalcPlotAnimationDataForTesting import PreCalcPointPlotAnimationDataForTesting
 
 
 class TestSurfacePlot(unittest.TestCase):
@@ -68,10 +69,22 @@ class TestSurfacePlot(unittest.TestCase):
                                    x=x,
                                    y=y,
                                    func=TestSurfacePlot.light_fitness_func,
-                                   point=(0.0, 0.5),
+                                   points=[(0.0, 0.0), (0.0, 0.0), (0.0, 0.0), (0.0, 0.0), (0.0, 0.0), (0.0, 0.0)],
                                    x_ticks=(-1.0, 1.0, 0.25),
                                    y_ticks=(0, 1, .1),
                                    levels=50)
         contour_plot.plot()
-        contour_plot.animate(x_animation_data=np.arange(-1.0, 1.0, 0.02),
-                             y_animation_data=np.arange(0.0, 1.0, 0.01))
+
+        data = np.zeros((100, 6, 2))
+        for i in range(100):
+            for j in range(6):
+                if i == 0:
+                    data[i][j][0], data[i][j][1] = np.random.random(2)
+                else:
+                    s = 1
+                    if np.random.rand() > 0.5:
+                        s = -1
+                    data[i][j][0] = (data[i - 1][j][0] + (np.random.rand() * .07 * s)) % 1
+                    data[i][j][1] = (data[i - 1][j][1] + (np.random.rand() * .07 * s)) % 1
+
+        contour_plot.animate(PreCalcPointPlotAnimationDataForTesting(data=data))

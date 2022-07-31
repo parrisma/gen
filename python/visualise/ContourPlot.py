@@ -1,9 +1,12 @@
+import sys
 from typing import Union, Callable, Tuple, List
+import matplotlib.lines
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.animation import FuncAnimation
 from python.visualise.PlotUtil import PlotUtil
+from python.visualise.PlotAnimationData import PlotAnimationData
 
 
 class ContourPlot:
@@ -16,7 +19,7 @@ class ContourPlot:
                  x: np.ndarray,
                  y: np.ndarray,
                  func: Callable[[float, float], float],
-                 point: Tuple[float, float],
+                 points: List[Tuple[float, float]],
                  x_ticks: Union[int, Tuple[float, float, float]] = 10,
                  y_ticks: Union[int, Tuple[float, float, float]] = 10,
                  levels: Union[int, Tuple[float, float, float]] = 20):
@@ -28,6 +31,7 @@ class ContourPlot:
         :param x: The values of X to plot for (must have same length as Y)
         :param y: The values of Y to plot for (must have same length as X)
         :param func: The function of x,y to render
+        :param points: The initial coordinates of the points that will be animated
         :param x_ticks: X Axis ticks, (start, end, step) or the number of steps to auto-scale ticks to function
         :param y_ticks: Y Axis ticks, (start, end, step) or the number of steps to auto-scale ticks to function
         :param levels: The contour levels as a simple count (default 20) or as parameters for a stepped range
@@ -35,18 +39,18 @@ class ContourPlot:
         self._x_data: np.ndarray = x
         self._y_data: np.ndarray = y
 
-        self._point: Tuple[float, float] = point
-        self._plotted_point = None  # Point to Animate
-        self._x_animation_data: np.ndarray = None
-        self._y_animation_data: np.ndarray = None
+        self._points: List[Tuple[float, float]] = points
+        self._plotted_points: List[matplotlib.lines.Line2D] = []  # Points to Animate
+        self._plot_animation_data: PlotAnimationData = None
         self._num_animation_points: int = None
-        self._rotate_plot: bool = True
-        self._rotate_step: int = 1
+        self._animation_point_cmap = matplotlib.cm.get_cmap('brg')
+        self._z_min = sys.float_info.max
+        self._z_max = sys.float_info.min
 
         self._func: Callable[[float, float], float] = func
         self._x, self._y, self._z = PlotUtil.render_function(x=x, y=y, func=self._func)
 
-        # Plot solution surface
+        # Plot solution contour
         self._fig, self._ax = plt.subplots(figsize=(7, 7))
         if isinstance(levels, int):
             lower = np.min(self._z)
@@ -75,9 +79,11 @@ class ContourPlot:
         self._fig.colorbar(cp, aspect=20)
 
         if show_point:
-            self._plotted_point, = self._ax.plot(self._point[0],  # x
-                                                 self._point[1],  # y
-                                                 marker="o", color="r")
+            for point in self._points:
+                plotted_pnt, = self._ax.plot(point[0],  # x
+                                             point[1],  # y
+                                             marker="o", color="r")
+                self._plotted_points.append(plotted_pnt)
         return
 
     def animation_function(self,
@@ -90,35 +96,41 @@ class ContourPlot:
         if i > self._num_animation_points:
             raise ValueError(f' Animation frame index {i} is greater than number of animation points')
 
-        x: float = self._x_animation_data[i]
-        y: float = self._y_animation_data[i]
-        z: float = self._func(x, y)
-        self._plotted_point.set_data(x, y)
-        return self._point,
+        data_points_for_frame: np.ndarray = self._plot_animation_data.get_data_for_frame(frame_idx=i)
+
+        idx: int = 0
+        for plotted_pnt in self._plotted_points:
+            x: float = data_points_for_frame[idx][0]
+            y: float = data_points_for_frame[idx][1]
+            z: float = self._func(x, y)
+            self._z_min = np.minimum(self._z_min, z)
+            self._z_max = np.maximum(self._z_max, z)
+            z = (z - self._z_min) / (self._z_max - self._z_min)
+
+            plotted_pnt.set_data(x, y)
+            plotted_pnt.set_color(self._animation_point_cmap(z))
+            idx += 1
+        return self._points,
 
     def animate(self,
-                x_animation_data: np.ndarray,
-                y_animation_data: np.ndarray,
+                plot_animation_data: PlotAnimationData,
                 frame_interval: int = 30,
                 show_time: int = 60):
         """
         Animate the plot.
-        :param x_animation_data: The x points over which to animate the animated point
-        :param y_animation_data: The z points over which to animate the animated point
+        :param plot_animation_data: Class to supply animation data on demand frame by frame
         :param frame_interval: The interval between frame updates in milli-sec, default = 30 ms
         :param show_time: The number of seconds to show the animation for, default = 60 secs.
         :return:
         """
-        if len(x_animation_data) != len(y_animation_data):
-            raise ValueError("X and Y animation data points must have same length")
+        self._plot_animation_data = plot_animation_data
+        self._num_animation_points = plot_animation_data.num_points()
 
-        self._x_animation_data = x_animation_data
-        self._y_animation_data = y_animation_data
-        self._num_animation_points = len(self._x_animation_data)
+        # check shape is a 2d point
 
         _ = FuncAnimation(self._fig,
                           func=self,
-                          frames=self._num_animation_points,
+                          frames=self._plot_animation_data.num_points(),
                           interval=frame_interval)
         plt.draw()
         plt.pause(show_time)
