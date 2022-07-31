@@ -6,51 +6,36 @@ from matplotlib.animation import FuncAnimation
 from python.visualise.PlotUtil import PlotUtil
 
 
-class SurfacePlot:
+class ContourPlot:
     _2PI: float = 2 * np.pi
 
     def __init__(self,
                  title: str,
                  x_label: str,
                  y_label: str,
-                 z_label: str,
                  x: np.ndarray,
                  y: np.ndarray,
                  func: Callable[[float, float], float],
-                 point: Tuple[float, float, float],
+                 point: Tuple[float, float],
                  x_ticks: Union[int, Tuple[float, float, float]] = 10,
                  y_ticks: Union[int, Tuple[float, float, float]] = 10,
-                 z_ticks: Union[int, Tuple[float, float, float]] = 10,
-                 elevation: float = 30,
-                 azimuth: float = 35,
-                 distance: float = 9,
-                 transparency: float = 0.5):
+                 levels: Union[int, Tuple[float, float, float]] = 20):
         """
         Render a surface with contour lines given function
         :param title: The Title of the Graph
         :param x_label: The Label for the x-axis
         :param y_label: The Label for the y-axis
-        :param z_label: The Label for the z-axis
         :param x: The values of X to plot for (must have same length as Y)
         :param y: The values of Y to plot for (must have same length as X)
         :param func: The function of x,y to render
-        :param points: A list of points to overlay onto the contour
         :param x_ticks: X Axis ticks, (start, end, step) or the number of steps to auto-scale ticks to function
         :param y_ticks: Y Axis ticks, (start, end, step) or the number of steps to auto-scale ticks to function
-        :param z_ticks: Z Axis ticks, (start, end, step) or the number of steps to auto-scale ticks to function
-        :param elevation: The 3D viewing elevation, default = 30 degrees
-        :param azimuth: The 3D viewing azimuth, default = 35 degrees (0 to 360)
-        :param distance: The 3D viewing distance, default = 9, bigger => further away, adjust to fit plot optimally
-        :param transparency: surface transparency, 1.0 = Fully Opaque, default = 0.5
+        :param levels: The contour levels as a simple count (default 20) or as parameters for a stepped range
         """
         self._x_data: np.ndarray = x
         self._y_data: np.ndarray = y
-        self._elevation: float = elevation
-        self._azimuth: float = azimuth
-        self._transparency: float = transparency
-        self._distance: float = distance
 
-        self._point: Tuple[float, float, float] = point
+        self._point: Tuple[float, float] = point
         self._plotted_point = None  # Point to Animate
         self._x_animation_data: np.ndarray = None
         self._y_animation_data: np.ndarray = None
@@ -62,58 +47,36 @@ class SurfacePlot:
         self._x, self._y, self._z = PlotUtil.render_function(x=x, y=y, func=self._func)
 
         # Plot solution surface
-        self._fig = plt.figure(figsize=(7, 7))
-        self._ax = self._fig.gca(projection="3d")
-        self._ax.view_init(elev=self._elevation,
-                           azim=self._azimuth)  # 3D Viewing position
-        self._ax.dist = self._distance  # Zoom out, so we can see all the axes and labels.
+        self._fig, self._ax = plt.subplots(figsize=(7, 7))
+        if isinstance(levels, int):
+            lower = np.min(self._z)
+            upper = np.max(self._z)
+            interval = np.absolute(upper - lower) / levels
+            self._levels = np.arange(lower, upper, interval).tolist()
+        else:
+            self._levels = np.arange(levels[0], levels[1], levels[2]).tolist()
 
         x_ticks = PlotUtil.ticks(v=self._x, given_ticks=x_ticks)
         y_ticks = PlotUtil.ticks(v=self._y, given_ticks=y_ticks)
-        z_ticks = PlotUtil.ticks(v=self._z, given_ticks=z_ticks)
 
         PlotUtil.axis_configuration(axes=self._ax,
                                     title=title,
-                                    x_label=x_label, y_label=y_label, z_label=z_label,
-                                    x_ticks=x_ticks, y_ticks=y_ticks, z_ticks=z_ticks)
+                                    x_label=x_label, y_label=y_label,
+                                    x_ticks=x_ticks, y_ticks=y_ticks)
         return
 
     def plot(self,
-             show_point: bool = True,
-             show_surface_contours: bool = True,
-             show_2d_contour: bool = True) -> None:
+             show_point: bool = True) -> None:
         """
         Render a surface with contour lines given function
         :param show_point: Set to True to show the animated point
-        :param show_surface_contours: Set True to show the contour lines superimposed on teh surface plot
-        :param show_2d_contour:  Set True to show the 2d contour plot directly under the surface
         """
-        surface = self._ax.plot_surface(self._x, self._y, self._z,
-                                        cmap=cm.jet,
-                                        linewidth=0,
-                                        antialiased=False,
-                                        rcount=200,
-                                        ccount=200,
-                                        alpha=self._transparency)
-        self._fig.colorbar(surface, shrink=0.5, aspect=20)
-
-        if show_surface_contours:
-            self._ax.contour(self._x, self._y, self._z,
-                             levels=20,
-                             colors='grey', linestyles="dashed", linewidths=.5,
-                             antialiased=False)
-
-        if show_2d_contour:
-            self._ax.contourf(self._x, self._y, self._z,
-                              levels=20,
-                              cmap=cm.binary,
-                              alpha=self._transparency,
-                              antialiased=False, offset=0)
+        cp = self._ax.contourf(self._x, self._y, self._z, self._levels, cmap=cm.jet, antialiased=False)
+        self._fig.colorbar(cp, aspect=20)
 
         if show_point:
             self._plotted_point, = self._ax.plot(self._point[0],  # x
                                                  self._point[1],  # y
-                                                 self._point[2],  # z
                                                  marker="o", color="r")
         return
 
@@ -131,31 +94,19 @@ class SurfacePlot:
         y: float = self._y_animation_data[i]
         z: float = self._func(x, y)
         self._plotted_point.set_data(x, y)
-        self._plotted_point.set_3d_properties(z)
-
-        if self._rotate_plot:
-            self._azimuth = (self._azimuth + self._rotate_step) % 360
-            self._ax.view_init(elev=self._elevation,
-                               azim=self._azimuth)  # 3D Viewing position
-            return self._fig,
-        else:
-            return self._point,
+        return self._point,
 
     def animate(self,
                 x_animation_data: np.ndarray,
                 y_animation_data: np.ndarray,
                 frame_interval: int = 30,
-                show_time: int = 60,
-                rotate_plot: bool = True,
-                rotate_step: int = 1):
+                show_time: int = 60):
         """
         Animate the plot.
         :param x_animation_data: The x points over which to animate the animated point
         :param y_animation_data: The z points over which to animate the animated point
         :param frame_interval: The interval between frame updates in milli-sec, default = 30 ms
         :param show_time: The number of seconds to show the animation for, default = 60 secs.
-        :param rotate_plot: If True rotate the plot during the animation
-        :param rotate_step: The numbers of degrees to rotate the plot by for each animation update
         :return:
         """
         if len(x_animation_data) != len(y_animation_data):
@@ -164,9 +115,6 @@ class SurfacePlot:
         self._x_animation_data = x_animation_data
         self._y_animation_data = y_animation_data
         self._num_animation_points = len(self._x_animation_data)
-
-        self._rotate_plot = rotate_plot
-        self._rotate_step = rotate_step
 
         _ = FuncAnimation(self._fig,
                           func=self,

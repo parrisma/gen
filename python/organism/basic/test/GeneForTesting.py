@@ -26,9 +26,11 @@ class GeneForTesting(Gene):
         """
         raise NotImplementedError
 
-    def mutate(self) -> None:
+    def mutate(self,
+               step_size: float) -> None:
         """
         Make a random mutation to the Gene
+        :param step_size: The size of the mutation to make +/- from current value
         """
         raise NotImplementedError
 
