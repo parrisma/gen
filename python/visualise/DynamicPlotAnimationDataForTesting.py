@@ -1,9 +1,9 @@
 import numpy as np
 from typing import Tuple
-from python.visualise.PlotAnimationData import PlotAnimationData
+from python.visualise.PointAnimationData import PointAnimationData
 
 
-class DynamicPointPlotAnimationDataForTesting(PlotAnimationData):
+class DynamicPointPlotAnimationDataForTesting(PointAnimationData):
     """
     Supply on the fly animation data
     """
@@ -38,7 +38,7 @@ class DynamicPointPlotAnimationDataForTesting(PlotAnimationData):
         return np.array([self._last_x, self._last_y]).reshape((1, 2))
 
     def num_points(self) -> int:
-        return PlotAnimationData.INF_POINTS
+        return PointAnimationData.INF_POINTS
 
     def point_shape(self) -> Tuple:
         return (2,)  # NOQA

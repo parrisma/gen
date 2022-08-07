@@ -1,9 +1,9 @@
 import numpy as np
 from typing import Tuple
-from python.visualise.PlotAnimationData import PlotAnimationData
+from python.visualise.PointAnimationData import PointAnimationData
 
 
-class PreCalcPointPlotAnimationDataForTesting(PlotAnimationData):
+class PreCalcPointPlotAnimationDataForTesting(PointAnimationData):
     """
     Supply pre-calculated data for animated points
     """
@@ -15,7 +15,7 @@ class PreCalcPointPlotAnimationDataForTesting(PlotAnimationData):
 
     def get_data_for_frame(self,
                            frame_idx: int) -> np.ndarray:
-        return self._data[frame_idx]
+        return self._data[frame_idx % self.num_points()]
 
     def num_points(self) -> int:
         return np.shape(self._data)[0]

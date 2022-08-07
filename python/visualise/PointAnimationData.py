@@ -4,7 +4,7 @@ from typing import Tuple
 import numpy as np
 
 
-class PlotAnimationData(ABC):
+class PointAnimationData(ABC):
     """
     A class that supplies frame by frame data to Matplotlib animation
     """

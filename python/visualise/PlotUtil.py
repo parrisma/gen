@@ -1,5 +1,7 @@
-from typing import Tuple, Callable, Union
+from typing import Tuple, Union, Dict
 import numpy as np
+from python.visualise.FuncOfZInTermsOfXY import FuncOfZInTermsOfXY
+from python.visualise.ParamScenarioFunc import ParamScenarioFunc
 
 
 class PlotUtil:
@@ -7,13 +9,17 @@ class PlotUtil:
     def render_function(cls,
                         x: np.ndarray,
                         y: np.ndarray,
-                        func: Callable[[float, float], float],
+                        func: FuncOfZInTermsOfXY,
+                        func_params: Dict[str, ParamScenarioFunc] = None,
+                        scenario_index: int = 0,
                         ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Render the given function over x, y values in a form that can be contour or surface plotted
         :param x: The values of X to plot for (must have same length as Y)
         :param y: The values of Y to plot for (must have same length as X)
+        :param func_params: Optional parameters for function as a dictionary, passed as **kwargs to func
         :param func: The function of x,y to render
+        :param scenario_index: If scenarios during animation are being used, the scenario number / index
         :return x,y,z values in form for plotting a contour or surface
         """
         nx = len(x)
@@ -23,7 +29,7 @@ class PlotUtil:
         _z = np.zeros((nx, ny), dtype='d')
         for i in range(nx):
             for j in range(ny):
-                _z[i, j] = func(x[i], y[j])
+                _z[i, j] = func(x[i], y[j], scenario_index, **func_params)  # x,y, **kwargs
 
         # Establish x, y for plotting.
         _x, _y = np.meshgrid(x, y)
@@ -93,8 +99,8 @@ class PlotUtil:
         if isinstance(given_ticks, Tuple):
             res = given_ticks
         elif isinstance(given_ticks, int):
-            v_min = np.floor(np.min(v) * 10) / 10  # rounded down to 1 DP
-            v_max = np.ceil(np.max(v) * 10) / 10  # rounded up to 1 DP
+            v_min = np.floor(np.min(v))
+            v_max = np.ceil(np.max(v))
             res = (v_min, v_max, (v_max - v_min) / given_ticks)
         else:
             raise ValueError(
