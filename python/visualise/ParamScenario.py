@@ -1,16 +1,17 @@
 import numpy as np
-from typing import Union
-from python.visualise.ParamScenarioFunc import ParamScenarioFunc
 
 
 class ParamScenario:
 
     def __init__(self,
+                 scenario_name: str,
                  param_values_by_index: np.ndarray):
         """
         Parameter Scenario Constructor
         :param param_values_by_index: The list of parameter values for a given scenario index.
         """
+        self._scenario_name = scenario_name
+
         if param_values_by_index is None:
             raise ValueError("Parameter values is mandatory, None given")
         if not isinstance(param_values_by_index, np.ndarray):
@@ -23,9 +24,11 @@ class ParamScenario:
         np.reshape(param_values_by_index, (1, self._size))
         self._param_values_by_index = param_values_by_index
 
-        self._direction = 1
-
         return
+
+    @property
+    def scenario_name(self) -> str:
+        return self._scenario_name
 
     @property
     def num_scenario_steps(self) -> int:
@@ -42,26 +45,10 @@ class ParamScenario:
         :return: The parameter value for the given scenario index.
         """
         idx = scenario_index % self._size
-        if scenario_index > 0:
-            if idx == 0:
-                self._direction *= -1
-
-        if self._direction == -1:
+        if (scenario_index // self._size) % 2 != 0:
             idx = np.maximum(self._size - idx - 1, 0)
 
         return self._param_values_by_index[idx]
 
-    @property
-    def scenario_func(self) -> ParamScenarioFunc:
-        """
-        The scenario function that matches the ParamScenarioFunc protocol.
-        :return: A scenario function that matches the ParamScenarioFunc protocol.
-        """
-        return self.__scenario_func
-
-    @classmethod
-    def single_value_scenario(cls,
-                              x: Union[int, float]) -> ParamScenarioFunc:
-        if not isinstance(x, (int, float)):
-            raise ValueError(f'Single value scenario only for single numerics, but given {x.__class__.__name__}')
-        return lambda *args, **kwargs: float(x)
+    def __call__(self, *args, **kwargs):
+        return self.__scenario_func(*args, **kwargs)
