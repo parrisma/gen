@@ -21,17 +21,17 @@ class PointAnimationData(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def num_points(self) -> int:
+    def num_frames(self) -> int:
         """
-        The number of animation data points available
+        The number of animation data frames available
         :return: The number of points or INF_POINTS is the class is supplying a live stream of data
         """
         raise NotImplementedError
 
     @abstractmethod
-    def point_shape(self) -> Tuple:
+    def frame_data_shape(self) -> Tuple:
         """
-        The numpy shape of a single point
-        :return: The numpy shape of a single point
+        The numpy shape of a single frame of data
+        :return: The numpy shape of a single frame of data
         """
         raise NotImplementedError

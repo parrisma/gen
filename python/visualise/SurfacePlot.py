@@ -59,7 +59,7 @@ class SurfacePlot:
         self._plotted_3d_points: List = []  # Point to Animate on the surface
         self._plotted_2d_points: List = []  # Point to Animate on the 2d contour plot in the base.
         self._plot_animation_data = None
-        self._num_animation_points: int = None
+        self._num_animation_points: int = None  # NOQA
         self._show_points: bool = False
         self._show_surface_contours: bool = True
         self._show_2d_contour: bool = True
@@ -68,8 +68,8 @@ class SurfacePlot:
         self._rotate_step: int = 1
 
         self._colour_map = cm.get_cmap('jet')
-        self._animation_point_cmap = cm.get_cmap('bwr')
-        self._2d_contour_cmap = cm.get_cmap('binary')
+        self._animation_point_colour_map = cm.get_cmap('bwr')
+        self._2d_contour_colour_map = cm.get_cmap('binary')
 
         self._title_text_size: int = 16
         self._axis_text_size: int = 14
@@ -143,7 +143,7 @@ class SurfacePlot:
         if self._show_2d_contour:
             self._2d_contours = self._ax.contourf(self._xm, self._ym, self._zm,
                                                   levels=20,
-                                                  cmap=self._2d_contour_cmap,
+                                                  cmap=self._2d_contour_colour_map,
                                                   alpha=self._transparency,
                                                   antialiased=False,
                                                   offset=self._z_ticks[0])
@@ -279,21 +279,21 @@ class SurfacePlot:
                 rotate_plot: bool = True,
                 rotate_step: int = 1):
         """
-        Animate the plot.
+        Animate the plot
         :param plot_animation_data: Class to supply animation data on demand frame by frame
         :param frame_interval: The interval between frame updates in milli-sec, default = 30 ms
-        :param show_time: The number of seconds to show the animation for, default = 60 secs.
+        :param show_time: The number of seconds to show the animation for, default = 60 secs
         :param rotate_plot: If True rotate the plot during the animation
         :param rotate_step: The numbers of degrees to rotate the plot by for each animation update
         :return:
         """
         self._plot_animation_data = plot_animation_data
-        self._num_animation_points = plot_animation_data.num_points()
+        self._num_animation_points = plot_animation_data.num_frames()
 
         self._rotate_plot = rotate_plot
         self._rotate_step = rotate_step
 
-        p_shape = self._plot_animation_data.point_shape()
+        p_shape = self._plot_animation_data.frame_data_shape()
         if p_shape[0] != 2:
             raise ValueError(f'Animation expected x,y values, but shape was {str(p_shape)}')
 

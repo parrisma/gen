@@ -5,7 +5,9 @@ from python.visualise.PointAnimationData import PointAnimationData
 
 class DynamicPointPlot3DAnimationDataForTesting(PointAnimationData):
     """
-    Supply on the fly animation data for 3D Points
+    Supply on the fly animation data for 3D Points.
+
+    When the get_data_for_frame method is called the frame data is calculated / retrieved on the fly.
     """
 
     def __init__(self,
@@ -25,7 +27,7 @@ class DynamicPointPlot3DAnimationDataForTesting(PointAnimationData):
     def get_data_for_frame(self,
                            frame_idx: int) -> np.ndarray:
         """
-        For each point Add random +/- noise of the defined step size and clip to the x, y, z defined ranges.
+        For each point Add random +/- noise of the defined step size and clip to the x, y, z defined ranges
         :param frame_idx: not used.
         :return: the updated points
         """
@@ -37,8 +39,16 @@ class DynamicPointPlot3DAnimationDataForTesting(PointAnimationData):
                                         self._points[i])], self._ranges)]
         return self._points
 
-    def num_points(self) -> int:
+    def num_frames(self) -> int:
+        """
+        The max number of data frames that will be returned.
+        :return: MAX_INT as this is dynamic / on the fly there is no defined end frame.
+        """
         return PointAnimationData.INF_POINTS
 
-    def point_shape(self) -> Tuple:
+    def frame_data_shape(self) -> Tuple:
+        """
+        The data frame is the x,y coordinate to be re-calculated, so shape is 2,
+        :return: Tuple(2) as frame is simple two float values for x,y
+        """
         return (2,)  # NOQA

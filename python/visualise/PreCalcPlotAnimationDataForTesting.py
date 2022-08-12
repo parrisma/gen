@@ -10,15 +10,19 @@ class PreCalcPointPlotAnimationDataForTesting(PointAnimationData):
 
     def __init__(self,
                  data: np.ndarray):
+        """
+        Constructor, just store the pre-calculated data that will be returned as frame data.
+        :param data: The data points to store and return as frame data
+        """
         self._data = data
         return
 
     def get_data_for_frame(self,
                            frame_idx: int) -> np.ndarray:
-        return self._data[frame_idx % self.num_points()]
+        return self._data[frame_idx % self.num_frames()]
 
-    def num_points(self) -> int:
+    def num_frames(self) -> int:
         return np.shape(self._data)[0]
 
-    def point_shape(self) -> Tuple:
+    def frame_data_shape(self) -> Tuple:
         return np.shape(self._data[0][0])

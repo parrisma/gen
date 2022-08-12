@@ -45,8 +45,8 @@ class ContourPlot:
         self._points: List[Tuple[float, float]] = points
         self._plotted_points: List[matplotlib.lines.Line2D] = []  # Points to Animate
         self._show_points = False
-        self._plot_animation_data: PointAnimationData = None
-        self._num_animation_points: int = None
+        self._plot_animation_data: PointAnimationData = None  # NOQA
+        self._num_animation_points: int = None  # NOQA
         self._colour_map = matplotlib.cm.get_cmap('jet')
         self._animation_point_cmap = matplotlib.cm.get_cmap('bwr')
         self._z_min = sys.float_info.max
@@ -80,29 +80,48 @@ class ContourPlot:
                                                                 scenario_index=0,
                                                                 func=self._func, func_params=self._func_params)
 
-        levels_ok = False
-        if isinstance(self._levels, int):
-            if self._levels >= 10:
-                lower = np.min(self._zm)
-                upper = np.max(self._zm)
-                interval = np.absolute(upper - lower) / self._levels
-                self._levels = np.arange(lower, upper, interval).tolist()
-                levels_ok = True
-        else:
-            if isinstance(self._levels, Tuple):
-                if len(self._levels) == 3:
-                    self._levels: List = np.arange(self._levels[0], self._levels[1], self._levels[2]).tolist()  # NOQA
-                    if len(self._levels) >= 10:
-                        levels_ok = True
+        self._levels = self._set_levels(levels=levels,
+                                        z_min=np.min(self._zm),
+                                        z_max=np.max(self._zm))
 
-        if not levels_ok:
-            raise ValueError("Contour levels must be specific as a single number n > 10 or range (start, stop, step")
-
-        # Establish correct ticks for each axis.
+        # Establish correct x, y ticks for each axis.
         self._x_ticks = PlotUtil.ticks(v=self._x_data, given_ticks=x_ticks)
         self._y_ticks = PlotUtil.ticks(v=self._y_data, given_ticks=y_ticks)
 
         return
+
+    def _set_levels(self,
+                    levels: Union[int, Tuple[float, float, float]],
+                    z_min: float,
+                    z_max: float,
+                    min_levels: int = 10) -> List[float]:
+        """
+        Set the contour level
+        :param levels: The contour levels as a simple count (default 20) or as parameters for a stepped range
+        :param z_max: The maximum value of Z, and thus the contour range
+        :param z_min: The minimum value of Z, and thus the contour range
+        :param min_levels: The minimum number of allowable levels, default is 10
+        :raises ValueError: if the defined levels not a positive int or a valid range, low,high,step
+        :return: A list of the contour level steps, where there are at least min_levels levels defined.
+        """
+
+        resulting_levels: List[float] = None  # NOQA
+        if isinstance(levels, int):
+            if levels >= min_levels:
+                interval = np.absolute(z_max - z_min) / self._levels
+                resulting_levels = np.arange(z_min, z_max, interval).tolist()  # NOQA
+        else:
+            if isinstance(levels, Tuple):
+                if len(levels) == 3:
+                    if levels[0] > levels[1] and levels[1] - levels[0] > levels[2]:
+                        resulting_levels = np.arange(self._levels[0], self._levels[1], self._levels[2]).tolist()  # NOQA
+                        if len(resulting_levels) < min_levels:
+                            resulting_levels = None  # NOQA
+
+        if resulting_levels is None:
+            raise ValueError("Contour levels must be specific as a single number n > 10 or range (start, stop, step")
+
+        return resulting_levels
 
     def _init_plot(self) -> None:
         """
@@ -191,7 +210,7 @@ class ContourPlot:
         return
 
     def animation_function(self,
-                           i):
+                           i) -> Tuple:
         """
         Animate the plot
         :param i: The number of the frame animation
@@ -206,7 +225,7 @@ class ContourPlot:
                 num_animation_frames: int,
                 use_func_for_z: bool = True,
                 frame_interval: int = 30,
-                show_time: int = 60):
+                show_time: int = 60) -> None:
         """
         Animate the plot
         :param plot_animation_data: Class to supply animation data on demand frame by frame
@@ -214,14 +233,13 @@ class ContourPlot:
         :param use_func_for_z: If True use the supplied function to calculate z from x,y
         :param frame_interval: The interval between frame updates in milli-sec, default = 30 ms
         :param show_time: The number of seconds to show the animation for, default = 60 secs.
-        :return:
         """
         self._plot_animation_data = plot_animation_data
-        self._num_animation_points = plot_animation_data.num_points()
+        self._num_animation_points = plot_animation_data.num_frames()
 
         # check shape is a 2d point
         self._use_func_for_z = use_func_for_z
-        p_shape = self._plot_animation_data.point_shape()
+        p_shape = self._plot_animation_data.frame_data_shape()
         if self._use_func_for_z and p_shape[0] != 2:
             raise ValueError(f'Animation expected x,y values, but shape was {str(p_shape)}')
         elif not self._use_func_for_z and p_shape[0] != 3:
@@ -235,5 +253,14 @@ class ContourPlot:
         plt.pause(show_time)
         return
 
-    def __call__(self, i, *args, **kwargs):
-        return self.animation_function(i)
+    def __call__(self,
+                 frame_index: int,
+                 *args, **kwargs):
+        """
+        Class is callable, where when called it invokes its animation.
+        :param frame_index: The frame_index to pass to the animate function.
+        :param args:
+        :param kwargs:
+        :return: The return result of the animate function
+        """
+        return self.animation_function(frame_index)

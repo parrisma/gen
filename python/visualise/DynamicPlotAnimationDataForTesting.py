@@ -37,8 +37,8 @@ class DynamicPointPlotAnimationDataForTesting(PointAnimationData):
 
         return np.array([self._last_x, self._last_y]).reshape((1, 2))
 
-    def num_points(self) -> int:
+    def num_frames(self) -> int:
         return PointAnimationData.INF_POINTS
 
-    def point_shape(self) -> Tuple:
+    def frame_data_shape(self) -> Tuple:
         return (2,)  # NOQA

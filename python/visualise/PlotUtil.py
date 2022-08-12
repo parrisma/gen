@@ -31,7 +31,7 @@ class PlotUtil:
             for j in range(ny):
                 _z[i, j] = func(x[i], y[j], scenario_index, **func_params)  # x,y, **kwargs
 
-        # Establish x, y for plotting.
+        # Establish x, y for plotting on surface of contour.
         _x, _y = np.meshgrid(x, y)
         return _x, _y, _z
 
@@ -48,7 +48,7 @@ class PlotUtil:
                            title_text_size: int = 16,
                            axis_text_size: int = 14) -> None:
         """
-        Configure titles and axis ticks and labels.
+        Configure titles and axis ticks and labels
         :param axes: The Matplot Lib axis to configure
         :param title: The Title of the Graph
         :param x_label: The Label for the x-axis
@@ -89,7 +89,7 @@ class PlotUtil:
         :param given_ticks: The ticks range to use or the number of ticks
         :return: If given_ticks is
             1. A Tuple, then just return given_ticks
-            2. An Integer, a range of floor(min(v)) to ceil(max(v) with interval: max - min / given_ticks
+            2. An Integer, a range of floor(min(v)) to ceil(max(v)) with interval: max - min / given_ticks
             3. None, a range of floor(min(v)) to ceil(max(v) with interval: max - min / 10.0
         :raise ValueError: if given ticks is not Tuple, Integer or None
         """
@@ -104,5 +104,5 @@ class PlotUtil:
             res = (v_min, v_max, (v_max - v_min) / given_ticks)
         else:
             raise ValueError(
-                f'Given ticks must be Tuple[float, float, float], int or None, but given {given_ticks.__class__.__name__}')
+                f'Given ticks must be Tuple[float, float, float], int or None, given {given_ticks.__class__.__name__}')
         return res

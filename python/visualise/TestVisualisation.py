@@ -10,13 +10,13 @@ from python.visualise.PlotTestUtil import PlotTestUtil
 from python.visualise.ParamScenario import ParamScenario
 
 
-class TestSurfacePlot(unittest.TestCase):
+class TestVisualisation(unittest.TestCase):
     _run: int
     _LIGHT_TOLERANCE = "LightTolerance"
     _DROUGHT_TOLERANCE = "DroughtTolerance"
 
     def __init__(self, *args, **kwargs):
-        super(TestSurfacePlot, self).__init__(*args, **kwargs)
+        super(TestVisualisation, self).__init__(*args, **kwargs)
         return
 
     @classmethod
@@ -25,12 +25,12 @@ class TestSurfacePlot(unittest.TestCase):
         return
 
     def setUp(self) -> None:
-        TestSurfacePlot._run += 1
-        print(f'- - - - - - C A S E {TestSurfacePlot._run} Start - - - - - -')
+        TestVisualisation._run += 1
+        print(f'- - - - - - C A S E {TestVisualisation._run} Start - - - - - -')
         return
 
     def tearDown(self) -> None:
-        print(f'- - - - - - C A S E {TestSurfacePlot._run} Passed - - - - - -\n')
+        print(f'- - - - - - C A S E {TestVisualisation._run} Passed - - - - - -\n')
         return
 
     def test1(self):
@@ -50,7 +50,7 @@ class TestSurfacePlot(unittest.TestCase):
         """
         if light_tolerance is None:
             light_tolerance = \
-                kwargs.get(TestSurfacePlot._LIGHT_TOLERANCE,
+                kwargs.get(TestVisualisation._LIGHT_TOLERANCE,
                            ParamScenario(param_values_by_index=np.array([0]), scenario_name='default'))(0)
 
         return 1 - np.sin(np.absolute((environment_light_level - ((1 + light_tolerance) / 2))) * (np.pi / 2))
@@ -68,7 +68,7 @@ class TestSurfacePlot(unittest.TestCase):
         """
         if drought_tolerance is None:
             drought_tolerance = \
-                kwargs.get(TestSurfacePlot._DROUGHT_TOLERANCE,
+                kwargs.get(TestVisualisation._DROUGHT_TOLERANCE,
                            ParamScenario(param_values_by_index=np.array([0]), scenario_name='default'))(0)
         return 1 - np.power(((1 + drought_tolerance) / 2 - environment_drought_level), 2)
 
@@ -81,16 +81,16 @@ class TestSurfacePlot(unittest.TestCase):
 
         # Extract optional (defaulted) arguments for the calculation.
         light_tol = \
-            kwargs.get(TestSurfacePlot._LIGHT_TOLERANCE,
+            kwargs.get(TestVisualisation._LIGHT_TOLERANCE,
                        ParamScenario(param_values_by_index=np.array([0]), scenario_name='default'))(scenario_index)
         drought_tol = \
-            kwargs.get(TestSurfacePlot._DROUGHT_TOLERANCE,
+            kwargs.get(TestVisualisation._DROUGHT_TOLERANCE,
                        ParamScenario(param_values_by_index=np.array([0]), scenario_name='default'))(scenario_index)
 
-        lf = TestSurfacePlot.light_fitness_func(light_tolerance=light_tol,
-                                                environment_light_level=environment_light_level)
-        df = TestSurfacePlot.drought_fitness_func(drought_tolerance=drought_tol,
-                                                  environment_drought_level=environment_drought_level)
+        lf = TestVisualisation.light_fitness_func(light_tolerance=light_tol,
+                                                  environment_light_level=environment_light_level)
+        df = TestVisualisation.drought_fitness_func(drought_tolerance=drought_tol,
+                                                    environment_drought_level=environment_drought_level)
         return lf + df
 
     # @unittest.skip  # By default, these tests are skipped as they are blocking, remove skip to see result.
@@ -113,10 +113,10 @@ class TestSurfacePlot(unittest.TestCase):
                                    z_label="Fitness",
                                    x=x,
                                    y=y,
-                                   func=TestSurfacePlot.hybrid_fitness_func,
+                                   func=TestVisualisation.hybrid_fitness_func,
                                    func_params={
-                                       TestSurfacePlot._LIGHT_TOLERANCE: light_tol_scenario,
-                                       TestSurfacePlot._DROUGHT_TOLERANCE: drought_tol_scenario},
+                                       TestVisualisation._LIGHT_TOLERANCE: light_tol_scenario,
+                                       TestVisualisation._DROUGHT_TOLERANCE: drought_tol_scenario},
                                    points=[(0.0, 0.0, 0.0)] * num_animated_points,
                                    x_ticks=10,
                                    y_ticks=10,
@@ -139,21 +139,16 @@ class TestSurfacePlot(unittest.TestCase):
                                    z_label="Fitness",
                                    x=x,
                                    y=y,
-                                   func=TestSurfacePlot.hybrid_fitness_func,
+                                   func=TestVisualisation.hybrid_fitness_func,
                                    func_params={},
                                    points=[(0.0, 0.0, 0.0)],
                                    x_ticks=10,
                                    y_ticks=10,
                                    z_ticks=10)
         surface_plot.plot()
-        if True:
-            surface_plot.animate(DynamicPointPlotAnimationDataForTesting((-1.0, 1.0), (0.0, 1.0)),
-                                 show_time=180,
-                                 rotate_plot=False)
-        else:
-            data = PlotTestUtil.generate_xy_range_animation_data(x_range=(-1.0, 1.0, 0.02),
-                                                                 y_range=(0.0, 1.0, 0.01))
-            surface_plot.animate(PreCalcPointPlotAnimationDataForTesting(data=data))
+        surface_plot.animate(DynamicPointPlotAnimationDataForTesting((-1.0, 1.0), (0.0, 1.0)),
+                             show_time=180,
+                             rotate_plot=False)
         return
 
     @unittest.skip  # By default, these tests are skipped as they are blocking, remove skip to see result.
@@ -173,10 +168,10 @@ class TestSurfacePlot(unittest.TestCase):
                                    y_label="% of day in light",
                                    x=x,
                                    y=y,
-                                   func=TestSurfacePlot.hybrid_fitness_func,
+                                   func=TestVisualisation.hybrid_fitness_func,
                                    func_params={
-                                       TestSurfacePlot._LIGHT_TOLERANCE: light_tol_scenario,
-                                       TestSurfacePlot._DROUGHT_TOLERANCE: drought_tol_scenario},
+                                       TestVisualisation._LIGHT_TOLERANCE: light_tol_scenario,
+                                       TestVisualisation._DROUGHT_TOLERANCE: drought_tol_scenario},
                                    points=[(0.0, 0.0)] * num_animated_points,
                                    x_ticks=(0, 1.0, 0.1),
                                    y_ticks=(0, 1.0, 0.1),
@@ -188,9 +183,3 @@ class TestSurfacePlot(unittest.TestCase):
                                                              drought_tol_scenario.num_scenario_steps),
                              show_time=180)
         return
-
-#    func_params = {
-#                      TestSurfacePlot._LIGHT_TOLERANCE: ParamScenario.single_value_scenario(.5),
-#                      TestSurfacePlot._DROUGHT_TOLERANCE: ParamScenario.single_value_scenario(-.5)},
-# light_tol_scenario = ParamScenario(param_values_by_index=np.array([0.5]))
-# drought_tol_scenario = ParamScenario(param_values_by_index=np.array([-0.5]))

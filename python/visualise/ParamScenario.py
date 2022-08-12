@@ -8,7 +8,7 @@ class ParamScenario:
                  param_values_by_index: np.ndarray):
         """
         Parameter Scenario Constructor
-        :param param_values_by_index: The list of parameter values for a given scenario index.
+        :param param_values_by_index: The list of parameter values for a given scenario index
         """
         self._scenario_name = scenario_name
 
