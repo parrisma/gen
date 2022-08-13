@@ -31,7 +31,7 @@ class BasicMetrics(Metrics):
     def is_alive(self) -> bool:
         """
         Is the organism still alive
-        :return: True if teh Organism is alive, else False
+        :return: True if the Organism is alive, else False
         """
         return self._alive
 

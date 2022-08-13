@@ -176,7 +176,7 @@ class ContourPlot:
                                 show_points: bool,
                                 frame_index: int) -> None:
         """
-        Update the animated points for teh given frame index
+        Update the animated points for the given frame index
         :param frame_index: The index of the frame to update for
         :param show_points: Set to True to show the animated point
         """

@@ -16,7 +16,7 @@ class PointAnimationData(ABC):
                            frame_idx: int) -> np.ndarray:
         """
         Get the data for a given animation frame
-        :return: A numpy array of the expected shape for teh given animation
+        :return: A numpy array of the expected shape for the given animation
         """
         raise NotImplementedError
 

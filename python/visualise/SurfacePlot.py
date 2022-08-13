@@ -173,7 +173,7 @@ class SurfacePlot:
                                 show_points: bool,
                                 frame_index: int) -> None:
         """
-        Update the animated points for teh given frame index
+        Update the animated points for the given frame index
         :param frame_index: The index of the frame to update for
         :param show_points: Set to True to show the animated point
         """
@@ -243,7 +243,7 @@ class SurfacePlot:
         """
         Render a surface with contour lines given function
         :param show_points: Set to True to show the animated point
-        :param show_surface_contours: Set True to show the contour lines superimposed on teh surface plot
+        :param show_surface_contours: Set True to show the contour lines superimposed on the surface plot
         :param show_2d_contour:  Set True to show the 2d contour plot directly under the surface
         """
         self._init_plot()

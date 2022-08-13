@@ -37,7 +37,7 @@ class BasicSelector(Selector):
         probs = Selector.rank_selection_probabilities(initial_prob=self._selection_probability,
                                                       num=len(population) + 1)
         sorted_population = copy(population)
-        sorted_population = sorted(sorted_population, key=lambda o: o.fitness())
+        sorted_population = sorted(sorted_population, key=lambda o: o.fitness(), reverse=True)
         sorted_population.append(None)
         survivors = np.random.choice(a=sorted_population, p=probs, size=len(population), replace=True)
         final_survivors = []

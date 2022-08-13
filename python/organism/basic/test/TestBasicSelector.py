@@ -59,9 +59,7 @@ class TestBasicSelector(unittest.TestCase):
 
         # Check when sorted by selection frequency the fitness (keys) come back in order 0 .. n as this matches the
         # probability distribution with which they were selected.
-        expected_k = 0
-        for k, v in sorted([[k, float(survival_stats.get(k))] for k in survival_stats.keys()], key=lambda o: o[1],
-                           reverse=True):
-            self.assertTrue(expected_k == int(k))
-            expected_k += 1
+        self.assertTrue(all([int(a) == int(b) for a, b in
+                             zip([k for k, v in sorted([s for s in survival_stats.items()], key=lambda o: o[1])],
+                                 range(num_to_generate))]))
         return

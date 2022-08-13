@@ -47,7 +47,7 @@ class OrganismForTesting(Organism):
 
     def fitness(self) -> float:
         """
-        Return a number that represents the fitness of teh organism.
+        Return a number that represents the fitness of the organism.
 
         Until the organism has run at least once the fitness will be the value for least-fit.
 

@@ -87,7 +87,7 @@ class TestBasicOrganism(unittest.TestCase):
             basic_organism2 = BasicOrganism(genome=g2)
 
             # Mix rate of 100% guarantees a full swap
-            new_organism = BasicOrganism(basic_organism1.crossover(mix_rate=0.5, organism=basic_organism2))  # NOQA
+            new_organism = BasicOrganism(basic_organism1.crossover(mix_rate=1.0, organism=basic_organism2))  # NOQA
             new_genes = Genome.gene_list(new_organism.get_genome())
             expected_genes = Genome.gene_list(basic_organism2.get_genome())
             self.assertTrue(new_genes == expected_genes)
@@ -95,7 +95,7 @@ class TestBasicOrganism(unittest.TestCase):
             # Mix rate of 0% guarantees a zero swap
             new_organism = BasicOrganism(basic_organism1.crossover(mix_rate=0.0, organism=basic_organism2))  # NOQA
             new_genes = Genome.gene_list(new_organism.get_genome())
-            expected_genes = Genome.gene_list(basic_organism2.get_genome())
+            expected_genes = Genome.gene_list(basic_organism1.get_genome())  # expect no genes from organism 2
             self.assertTrue(new_genes == expected_genes)
 
         return

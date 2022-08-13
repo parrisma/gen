@@ -6,6 +6,7 @@ from python.base.Organism import Organism
 from python.base.Genome import Genome
 from python.base.EnvironmentState import EnvironmentState
 from python.base.Metrics import Metrics
+from python.base.Gene import Gene
 from python.organism.basic.BasicMetrics import BasicMetrics
 from python.organism.basic.BasicEnvironmentAttributes import BasicEnvironmentAttributes
 from python.organism.basic.BasicChromosome import BasicChromosome
@@ -15,34 +16,53 @@ from python.organism.basic.genes.DroughtToleranceGene import DroughtToleranceGen
 
 
 class BasicOrganism(Organism):
-    _id: OrganismId
-    _genome: BasicGenome
-    _metrics: BasicMetrics
-    _light_tolerance: float
-    _drought_tolerance: float
 
     @classmethod
-    def __limit(cls,
-                v: float,
-                lim: float):
+    def __as_pct(cls,
+                 v: float,
+                 lim: float):
         """
-        Clip the given value in the clipped -lim to +lim
-        :param v: The value to be capped
-        :param lim: The limit
-        :return: The value clipped in range -lim to +lim
+        Return the given value as a % where lim = 100%
+        :param v: The value to be converted to %
+        :param lim: The limit that represents 100%
+        :return: The value as %
         """
-        return np.sign(v) * np.minimum(np.absolute(v), lim)
+        return np.maximum(0, np.minimum(np.absolute(v), lim)) / lim
 
     def __init__(self,
                  genome: BasicGenome):
-        self._id = OrganismId()
-        self._genome = genome
-        self._metrics = BasicMetrics(alive=True, fitness=Metrics.LEAST_FIT)
+        self._id: OrganismId = OrganismId()
+        self._genome: BasicGenome = genome
+        self._metrics: BasicMetrics = BasicMetrics(alive=True, fitness=Metrics.LEAST_FIT)
         # Express Chromosomes
         chromosome: BasicChromosome = self._genome.get_chromosome(BasicChromosome)  # NOQA
-        self._light_tolerance = chromosome.get_gene(LightToleranceGene).value()
-        self._drought_tolerance = chromosome.get_gene(DroughtToleranceGene).value()
+        self._light_tolerance: Gene = chromosome.get_gene(LightToleranceGene)
+        self._drought_tolerance: Gene = chromosome.get_gene(DroughtToleranceGene)
         return
+
+    @classmethod
+    def light_fitness_func(cls,
+                           environment_light_level: float,
+                           light_tolerance: float) -> float:
+        """
+        Calculate fitness as a function of light tolerance and light level
+        :param light_tolerance: The genetic driven light tolerance -1.0 to 1.0
+        :param environment_light_level: The environment light level 0.0 to 1.0
+        :return: The fitness of the organism given its light tolerance and the ambient light levels
+        """
+        return 1 - np.sin(np.absolute((environment_light_level - ((1 + light_tolerance) / 2))) * (np.pi / 2))
+
+    @classmethod
+    def drought_fitness_func(cls,
+                             environment_drought_level: float,
+                             drought_tolerance: float) -> float:
+        """
+        Calculate fitness as a function of drought tolerance and light level
+        :param drought_tolerance: The genetic driven drought tolerance -1.0 to 1.0
+        :param environment_drought_level: The environment drought level 0.0 to 1.0
+        :return: The fitness of the organism given its drought tolerance and the drought level
+        """
+        return 1 - np.power(((1 + drought_tolerance) / 2 - environment_drought_level), 2)
 
     def run(self,
             environment_state: EnvironmentState) -> Organism:
@@ -53,13 +73,13 @@ class BasicOrganism(Organism):
         """
         bm: Dict[BasicEnvironmentAttributes, object] = environment_state.get_attributes()  # NOQA
 
-        ave_light = BasicOrganism.__limit(bm.get(BasicEnvironmentAttributes.AVG_HOURS_OF_LIGHT_PER_DAY), 24)
-        light_fitness = (1 - np.sign(self._light_tolerance) * np.power(self._light_tolerance, 2)) + (
-                np.power(ave_light / 24, 2) * 2 * np.sign(self._light_tolerance))
+        ave_light = BasicOrganism.__as_pct(bm.get(BasicEnvironmentAttributes.AVG_HOURS_OF_LIGHT_PER_DAY), 24)
+        light_fitness = BasicOrganism.light_fitness_func(environment_light_level=ave_light,
+                                                         light_tolerance=self._light_tolerance.value())
 
-        ave_drought = BasicOrganism.__limit(bm.get(BasicEnvironmentAttributes.AVG_HOURS_BETWEEN_RAIN), (24 * 7))
-        drought_fitness = (1 - np.sign(self._drought_tolerance) * np.power(self._drought_tolerance, 2)) + (
-                np.power(ave_drought / 24, 2) * 2 * np.sign(self._drought_tolerance))
+        ave_drought = BasicOrganism.__as_pct(bm.get(BasicEnvironmentAttributes.AVG_HOURS_BETWEEN_RAIN), 24)
+        drought_fitness = BasicOrganism.drought_fitness_func(environment_drought_level=ave_drought,
+                                                             drought_tolerance=self._drought_tolerance.value())
 
         self._metrics = BasicMetrics(alive=True, fitness=(light_fitness + drought_fitness) / 2.0)
 
@@ -74,7 +94,7 @@ class BasicOrganism(Organism):
 
     def fitness(self) -> float:
         """
-        Return a number that represents the fitness of teh organism.
+        Return a number that represents the fitness of the organism.
 
         Until the organism has run at least once the fitness will be the value for least-fit.
 
@@ -129,7 +149,9 @@ class BasicOrganism(Organism):
         :param organism: The organism to cross genes with
         :return: The Genome resulting from the crossover.
         """
-        return Organism.crossover_genomes(from_organism=organism, to_organism=self, mix_rate=mix_rate)
+        return Genome.cross_genomes(mix_percent=mix_rate,
+                                    from_genome=organism.get_genome(),
+                                    to_genome=self.get_genome())
 
     def mutate(self,
                step_size: Union[float, Dict[type, float]]) -> Genome:
@@ -138,18 +160,7 @@ class BasicOrganism(Organism):
         :param step_size: An absolute step size as float to be applied to all gene types ot
         :return: The Genome resulting from the mutation.
         """
-        mutated_genome = copy(self.get_genome())
-        genes = Genome.gene_list(mutated_genome)
-        for gene in genes:
-            if isinstance(step_size, dict):
-                if type(gene) in step_size.keys():
-                    gene.mutate(step_size=step_size.get(type(gene)))
-                else:
-                    raise ValueError(f'No step size supplied for gene type {str(type(gene))}')
-            else:
-                gene.mutate(step_size=float(step_size))  # NOQA
-
-        return mutated_genome
+        return Genome.mutate(genome_to_mutate=self.get_genome(), step_size=step_size)
 
     def __eq__(self, other):
         """

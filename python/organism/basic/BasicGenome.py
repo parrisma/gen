@@ -63,7 +63,7 @@ class BasicGenome(Genome):
 
     def get_chromosome_types(self) -> List[type]:
         """
-        Get all the types for the Chromosome in teh Genome
+        Get all the types for the Chromosome in the Genome
         :return: A list of Chromosome types
         """
         return list(self._chromosomes.keys())

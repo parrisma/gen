@@ -62,12 +62,16 @@ class Gene(ABC):
     def mutate_float(cls,
                      current_value: float,
                      mutation_rate: float,
-                     step_size: float) -> float:
+                     step_size: float,
+                     v_min: float = 0.0,
+                     v_max: float = 1.0) -> float:
         """
         Mutate the current value randomly by + or - the step size
         :param current_value: The value to be mutates
         :param mutation_rate: The probability of a mutation happening as a result of this call
         :param step_size: The step size of the mutation
+        :param v_min: Clip the mutated value at this lower bound
+        :param v_max: Clip the mutated value at this upper bound
         :return: the value after the mutation
         """
         new_value: float = current_value
@@ -77,4 +81,4 @@ class Gene(ABC):
             else:
                 new_value -= step_size
 
-        return new_value
+        return np.minimum(v_max, np.maximum(v_min, new_value))

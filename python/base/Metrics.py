@@ -22,7 +22,7 @@ class Metrics(ABC):
     def is_alive(self) -> bool:
         """
         Evaluate if the Organism is still alive and able to participate in a call to it's run method.
-        :return: True if teh Organism is alive.
+        :return: True if the Organism is alive.
         """
         raise NotImplementedError
 

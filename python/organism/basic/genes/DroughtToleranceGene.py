@@ -56,7 +56,7 @@ class DroughtToleranceGene(Gene):
     def mutate(self,
                step_size: float) -> None:
         """
-        Make upto 10% random mutation to the Gene
+        Make a random mutation to the Gene of step_size
         :param step_size: The size of the mutation to make +/- from current value
         """
         self._drought_tolerance = Gene.mutate_float(current_value=self._drought_tolerance,
