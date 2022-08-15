@@ -33,5 +33,5 @@ class BasicEnvironmentState(EnvironmentState):
         :return: A dictionary of environment attributes.
         """
         return {BasicEnvironmentAttributes.AVG_HOURS_BETWEEN_RAIN: self._avg_hours_between_rain,
-                BasicEnvironmentAttributes.AVG_HOURS_OF_LIGHT_PER_DAY: self._avg_hours_of_light_per_day
-                }
+                BasicEnvironmentAttributes.AVG_HOURS_OF_LIGHT_PER_DAY: self._avg_hours_of_light_per_day,
+                BasicEnvironmentAttributes.POPULATION: self._population}

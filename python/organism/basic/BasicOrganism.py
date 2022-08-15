@@ -1,4 +1,4 @@
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Callable
 import numpy as np
 from copy import copy
 from python.id.OrganismId import OrganismId
@@ -16,6 +16,8 @@ from python.organism.basic.genes.DroughtToleranceGene import DroughtToleranceGen
 
 
 class BasicOrganism(Organism):
+    LIGHT_TOLERANCE: str = "LightTolerance"
+    DROUGHT_TOLERANCE: str = "DroughtTolerance"
 
     @classmethod
     def __as_pct(cls,
@@ -33,7 +35,7 @@ class BasicOrganism(Organism):
                  genome: BasicGenome):
         self._id: OrganismId = OrganismId()
         self._genome: BasicGenome = genome
-        self._metrics: BasicMetrics = BasicMetrics(alive=True, fitness=Metrics.LEAST_FIT)
+        self._metrics: BasicMetrics = BasicMetrics(alive=True, fitness=Metrics.LEAST_FIT, diversity=0.0)
         # Express Chromosomes
         chromosome: BasicChromosome = self._genome.get_chromosome(BasicChromosome)  # NOQA
         self._light_tolerance: Gene = chromosome.get_gene(LightToleranceGene)
@@ -64,6 +66,40 @@ class BasicOrganism(Organism):
         """
         return 1 - np.power(((1 + drought_tolerance) / 2 - environment_drought_level), 2)
 
+    @classmethod
+    def hybrid_fitness_func(cls,
+                            environment_light_level: float,
+                            environment_drought_level: float,
+                            scenario_index: int,
+                            **kwargs) -> float:
+        """
+        Calculate Organism fitness as a function of light tolerance and drought tolerance
+        :param environment_light_level: The current environmental light level as a % of 24 hrs
+        :param environment_drought_level: The current environmental drought level as a % of 24 hrs
+        :param scenario_index: The scenario index for surface rendering
+        :param kwargs: Optional arguments for passing organism specific details.
+        :return:
+        """
+        # Extract optional (defaulted) arguments for the calculation.
+        light_tol = kwargs.get(BasicOrganism.LIGHT_TOLERANCE, None)
+        drought_tol = kwargs.get(BasicOrganism.DROUGHT_TOLERANCE, None)
+
+        if light_tol is None or drought_tol is None:
+            raise ValueError("Light and Drought tolerance Parameter scenarios must be passed in kwargs")
+        else:
+            if isinstance(light_tol, Callable):
+                light_tol = light_tol(scenario_index=scenario_index)
+            if isinstance(drought_tol, Callable):
+                drought_tol = drought_tol(scenario_index=scenario_index)
+
+        light_fitness = BasicOrganism.light_fitness_func(environment_light_level=environment_light_level,
+                                                         light_tolerance=light_tol)
+
+        drought_fitness = BasicOrganism.drought_fitness_func(environment_drought_level=environment_drought_level,
+                                                             drought_tolerance=drought_tol)
+
+        return (light_fitness + drought_fitness) / 2
+
     def run(self,
             environment_state: EnvironmentState) -> Organism:
         """
@@ -74,14 +110,21 @@ class BasicOrganism(Organism):
         bm: Dict[BasicEnvironmentAttributes, object] = environment_state.get_attributes()  # NOQA
 
         ave_light = BasicOrganism.__as_pct(bm.get(BasicEnvironmentAttributes.AVG_HOURS_OF_LIGHT_PER_DAY), 24)
-        light_fitness = BasicOrganism.light_fitness_func(environment_light_level=ave_light,
-                                                         light_tolerance=self._light_tolerance.value())
-
         ave_drought = BasicOrganism.__as_pct(bm.get(BasicEnvironmentAttributes.AVG_HOURS_BETWEEN_RAIN), 24)
-        drought_fitness = BasicOrganism.drought_fitness_func(environment_drought_level=ave_drought,
-                                                             drought_tolerance=self._drought_tolerance.value())
 
-        self._metrics = BasicMetrics(alive=True, fitness=(light_fitness + drought_fitness) / 2.0)
+        kwargs = {BasicOrganism.LIGHT_TOLERANCE: self._light_tolerance.value(),
+                  BasicOrganism.DROUGHT_TOLERANCE: self._drought_tolerance.value()}
+
+        fitness: float = BasicOrganism.hybrid_fitness_func(environment_light_level=ave_light,
+                                                           environment_drought_level=ave_drought,
+                                                           scenario_index=0,
+                                                           **kwargs)
+
+        diversity: float = self.get_relative_diversity(bm.get(BasicEnvironmentAttributes.POPULATION))
+
+        self._metrics = BasicMetrics(alive=True,
+                                     fitness=fitness,
+                                     diversity=diversity)  # TODO
 
         return self
 
@@ -100,7 +143,7 @@ class BasicOrganism(Organism):
 
         :return: Organism fitness expressed as a float.
         """
-        return self._metrics.get_fitness()
+        return (self._metrics.get_fitness() + self._metrics.get_diversity()) / 2.0
 
     def metrics(self) -> Metrics:
         """

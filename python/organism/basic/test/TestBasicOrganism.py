@@ -142,6 +142,6 @@ class TestBasicOrganism(unittest.TestCase):
                                           population=[organism])
 
         organism.run(environment_state=env_state)
-        organism.fitness()
+        organism.fitness()  # TODO add asserts
 
         return

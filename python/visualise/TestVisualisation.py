@@ -1,5 +1,6 @@
 import unittest
 import numpy as np
+import time
 from python.organism.basic.test.UtilsForTesting import UtilsForTesting
 from python.visualise.SurfacePlot import SurfacePlot
 from python.visualise.ContourPlot import ContourPlot
@@ -95,7 +96,50 @@ class TestVisualisation(unittest.TestCase):
 
     # @unittest.skip  # By default, these tests are skipped as they are blocking, remove skip to see result.
     @UtilsForTesting.test_case
-    def testSurfacePlotFitnessFunc1(self):
+    def testSurfacePlotStepByStepUpdate(self):
+
+        x = np.arange(0, 1.01, 0.025)
+        y = np.arange(0, 1.01, 0.025)
+
+        light_tol_scenario = ParamScenario(scenario_name="Light Tol",
+                                           param_values_by_index=np.array(0.3).reshape(1))
+        drought_tol_scenario = ParamScenario(scenario_name="Drought Tol",
+                                             param_values_by_index=np.array(-.5).reshape(1))
+
+        num_animated_points = 20
+
+        surface_plot = SurfacePlot(title="Environmental Fitness",
+                                   x_label="% of day in drought",
+                                   y_label="% of day in light",
+                                   z_label="Fitness",
+                                   x=x,
+                                   y=y,
+                                   func=TestVisualisation.hybrid_fitness_func,
+                                   func_params={
+                                       TestVisualisation._LIGHT_TOLERANCE: light_tol_scenario,
+                                       TestVisualisation._DROUGHT_TOLERANCE: drought_tol_scenario},
+                                   points=[(0.0, 0.0, 0.0)] * num_animated_points,
+                                   x_ticks=10,
+                                   y_ticks=10,
+                                   z_ticks=10)
+        surface_plot.plot()
+        d3dp = DynamicPointPlot3DAnimationDataForTesting(num_points=num_animated_points,
+                                                         x_range=(0, 1),
+                                                         y_range=(0, 1),
+                                                         func=TestVisualisation.hybrid_fitness_func,
+                                                         func_params={
+                                                             TestVisualisation._LIGHT_TOLERANCE: light_tol_scenario,
+                                                             TestVisualisation._DROUGHT_TOLERANCE: drought_tol_scenario}
+                                                         )
+        for i in range(100):
+            surface_plot.animate_step(frame_index=i,
+                                      plot_animation_data=d3dp,
+                                      points_only=True)
+        return
+
+    @unittest.skip  # By default, these tests are skipped as they are blocking, remove skip to see result.
+    @UtilsForTesting.test_case
+    def testSurfacePlotAnimatedWithParamScenario(self):
 
         x = np.arange(0, 1.01, 0.025)
         y = np.arange(0, 1.01, 0.025)
@@ -122,15 +166,15 @@ class TestVisualisation(unittest.TestCase):
                                    y_ticks=10,
                                    z_ticks=10)
         surface_plot.plot()
-        if True:
-            d3dp = DynamicPointPlot3DAnimationDataForTesting(num_points=num_animated_points,
-                                                             x_range=(0, 1),
-                                                             y_range=(0, 1))
-            surface_plot.animate(d3dp, show_time=180, rotate_plot=False)
+        d3dp = DynamicPointPlot3DAnimationDataForTesting(num_points=num_animated_points,
+                                                         x_range=(0, 1),
+                                                         y_range=(0, 1))
+        surface_plot.animate(d3dp, show_time=180, rotate_plot=False)
+        return
 
     @unittest.skip  # By default, these tests are skipped as they are blocking, remove skip to see result.
     @UtilsForTesting.test_case
-    def testSurfacePlotFitnessFunc(self):
+    def testSurfacePlotAnimatedSinglePoint(self):
         x = np.arange(0, 1.01, 0.0125)
         y = np.arange(0, 1.01, 0.0125)
         surface_plot = SurfacePlot(title="Environmental Fitness",
@@ -153,7 +197,7 @@ class TestVisualisation(unittest.TestCase):
 
     @unittest.skip  # By default, these tests are skipped as they are blocking, remove skip to see result.
     @UtilsForTesting.test_case
-    def testContourPlotFitnessFunc(self):
+    def testContourPlotAnimatedPoints(self):
         x = np.arange(0, 1.01, 0.0125)
         y = np.arange(0, 1.01, 0.0125)
 

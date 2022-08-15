@@ -10,7 +10,8 @@ class BasicMetrics(Metrics):
 
     def __init__(self,
                  alive: bool,
-                 fitness: float):
+                 fitness: float,
+                 diversity: float):
         """
         Basic Metrics constructor
         :param alive: The value of alive as boolean
@@ -18,6 +19,7 @@ class BasicMetrics(Metrics):
         """
         self._alive = alive
         self._fitness = fitness
+        self._diversity = diversity
         self._metrics_id = MetricsId()
         return
 
@@ -42,13 +44,21 @@ class BasicMetrics(Metrics):
         """
         return self._fitness
 
+    def get_diversity(self) -> float:
+        """
+        Get the current diversity value
+        :return: Diversity expressed as a float in range 0.0 to 1.0
+        """
+        return self._diversity
+
     def __copy__(self):
         """
         Create a copy of the metrics.
         :return: A copy of the current metrics
         """
         return BasicMetrics(alive=copy(self._alive),
-                            fitness=copy(self._fitness))
+                            fitness=copy(self._fitness),
+                            diversity=copy(self._diversity))
 
     def __eq__(self, other):
         """
@@ -59,5 +69,6 @@ class BasicMetrics(Metrics):
         if isinstance(other, BasicMetrics):
             if self._alive == other._alive:
                 if self._fitness == other._fitness:
-                    return True
+                    if self._diversity == other._diversity:
+                        return True
         return False

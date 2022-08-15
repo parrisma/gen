@@ -1,6 +1,7 @@
 from typing import Dict, List
 from functools import partial
 import concurrent.futures
+import time
 import numpy as np
 from python.main.Conf import Conf
 from python.base.Env import Env
@@ -8,19 +9,17 @@ from python.base.Selector import Selector
 from python.base.OrganismFactory import OrganismFactory
 from python.base.Organism import Organism
 from python.base.Genome import Genome
+from python.base.Metrics import Metrics
 from python.organism.basic.BasicEnvironmentState import BasicEnvironmentState
 from python.organism.basic.BasicSelector import BasicSelector
+from python.organism.basic.BasicOrganism import BasicOrganism
+from python.organism.basic.DynamicPointAnimation import DynamicPointAnimation
 from python.exceptions.PopulationExtinct import PopulationExtinct
+from python.visualise.ParamScenario import ParamScenario
+from python.visualise.SurfacePlot import SurfacePlot
 
 
 class BasicEnv(Env):
-    _num_organisms: int
-    _mutation_rate: float
-    _crossover_rate: float
-    _population: Dict[str, Organism]
-    _selector: Selector
-    _organism_factory: OrganismFactory
-    _state: BasicEnvironmentState
 
     def __init__(self,
                  hours_of_light_per_day: float,
@@ -35,16 +34,57 @@ class BasicEnv(Env):
         :param conf: The JSON config file.
         """
         super(BasicEnv, self).__init__()
-        self._num_organisms = conf.config["environment"]["num_generation_zero_organisms"]
-        self._crossover_rate = conf.config["environment"]["crossover_rate"]
-        self._mutation_rate = conf.config["environment"]["mutation_rate"]
-        self._population = {}
-        self._metrics = {}
-        self._selector = selector
-        self._organism_factory = organism_factory
-        self._state = BasicEnvironmentState(avg_hours_of_light_per_day=hours_of_light_per_day,
-                                            avg_hours_between_rain=hours_since_last_rain,
-                                            population=list(self._population.values()))
+        self._num_organisms: int = conf.config["environment"]["num_generation_zero_organisms"]
+        self._crossover_rate: float = conf.config["environment"]["crossover_rate"]
+        self._mutation_rate: float = conf.config["environment"]["mutation_rate"]
+        self._population: Dict[str, Organism] = {}
+        self._metrics: Dict[str, Metrics] = {}
+        self._selector: Selector = selector
+        self._organism_factory: OrganismFactory = organism_factory
+        self._hours_of_light_per_day: float = hours_of_light_per_day
+        self._hours_since_last_rain: float = hours_since_last_rain
+        return
+
+    @classmethod
+    def __as_pct(cls,
+                 v: float,
+                 lim: float):
+        """
+        Return the given value as a % where lim = 100%
+        :param v: The value to be converted to %
+        :param lim: The limit that represents 100%
+        :return: The value as %
+        """
+        return np.maximum(0, np.minimum(np.absolute(v), lim)) / lim
+
+    def init_visualisation(self):
+
+        x = np.arange(0, 1.01, 0.025)
+        y = np.arange(0, 1.01, 0.025)
+
+        ave_light = self.__as_pct(self._hours_of_light_per_day, 24)
+        ave_drought = self.__as_pct(self._hours_since_last_rain, 24)
+
+        light_tol_scenario = ParamScenario(scenario_name="Light Tol",
+                                           param_values_by_index=np.array(ave_light).reshape(1))
+        drought_tol_scenario = ParamScenario(scenario_name="Drought Tol",
+                                             param_values_by_index=np.array(ave_drought).reshape(1))
+
+        surface_plot = SurfacePlot(title="Environmental Fitness",
+                                   x_label="% of day in drought",
+                                   y_label="% of day in light",
+                                   z_label="Fitness",
+                                   x=x,
+                                   y=y,
+                                   func=BasicOrganism.hybrid_fitness_func,
+                                   func_params={
+                                       BasicOrganism.LIGHT_TOLERANCE: light_tol_scenario,
+                                       BasicOrganism.DROUGHT_TOLERANCE: drought_tol_scenario},
+                                   points=[(0.0, 0.0, 0.0)] * self._num_organisms,
+                                   x_ticks=10,
+                                   y_ticks=10,
+                                   z_ticks=10)
+        surface_plot.plot()
         return
 
     def create_generation_zero(self):
@@ -73,7 +113,8 @@ class BasicEnv(Env):
         self._metrics.clear()
 
         with concurrent.futures.ProcessPoolExecutor() as executor:
-            results = [executor.submit(partial(organism.run, self._state)) for organism in self._population.values()]
+            results = [executor.submit(partial(organism.run, self.get_state())) for organism in
+                       self._population.values()]
 
             for f in concurrent.futures.as_completed(results):
                 o: Organism = f.result()
@@ -126,6 +167,7 @@ class BasicEnv(Env):
         Run the evolutionary simulation until termination condition are met
         :return: False if the evolutionary simulation has met termination conditions.
         """
+        self.init_visualisation()
         self.create_generation_zero()
 
         while not self.termination_conditions_met():
@@ -139,6 +181,7 @@ class BasicEnv(Env):
 
             self.rank_and_select_survivors()
             self.create_next_generation()
+            time.sleep(0)  # yield
 
         return False
 
@@ -147,4 +190,6 @@ class BasicEnv(Env):
         Get the current state of the Environment
         :return: The current environment state
         """
-        raise NotImplementedError
+        return BasicEnvironmentState(avg_hours_of_light_per_day=self._hours_of_light_per_day,
+                                     avg_hours_between_rain=self._hours_since_last_rain,
+                                     population=list(self._population.values()))

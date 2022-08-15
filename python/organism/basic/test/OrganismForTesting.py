@@ -23,7 +23,7 @@ class OrganismForTesting(Organism):
         self._id = OrganismId()
         self._fitness = fitness
         self._diversity = diversity
-        self._metrics = BasicMetrics(alive=True, fitness=self._fitness)
+        self._metrics = BasicMetrics(alive=True, fitness=self._fitness, diversity=diversity)
         return
 
     def run(self,
@@ -35,7 +35,7 @@ class OrganismForTesting(Organism):
         """
         # Nothing to do as metrics are fixed at construct time to allow for predictable testing
         # so just construct a new metrics based on fixed values.
-        self._metrics = BasicMetrics(alive=True, fitness=self._fitness)
+        self._metrics = BasicMetrics(alive=True, fitness=self._fitness, diversity=self._diversity)
         return self
 
     def is_alive(self) -> bool:

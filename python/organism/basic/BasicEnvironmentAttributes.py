@@ -8,3 +8,4 @@ class BasicEnvironmentAttributes(Enum):
     """
     AVG_HOURS_OF_LIGHT_PER_DAY = auto()
     AVG_HOURS_BETWEEN_RAIN = auto()
+    POPULATION = auto()

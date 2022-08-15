@@ -35,6 +35,14 @@ class Metrics(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def get_diversity(self) -> float:
+        """
+        Get the current diversity
+        :return: Diversity expressed as a float in range 0.0 to 1.0
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def __copy__(self):
         """
         Create a copy of the metrics.

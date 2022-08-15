@@ -32,11 +32,13 @@ class TestBasicMetrics(unittest.TestCase):
         ids_already_seen: Dict[str, str] = {}
         for _ in range(100):
             fitness = np.random.rand()
+            diversity = np.random.rand()
             alive = True
             if np.random.rand() > 0.5:
                 alive = False
             bm = BasicMetrics(alive=alive,
-                              fitness=float(fitness))
+                              fitness=float(fitness),
+                              diversity=float(diversity))
             self.assertFalse(bm.get_metrics_id() in ids_already_seen)
             ids_already_seen[bm.get_metrics_id()] = bm.get_metrics_id()
             self.assertTrue(bm.is_alive() == alive)
@@ -46,9 +48,11 @@ class TestBasicMetrics(unittest.TestCase):
     @UtilsForTesting.test_case
     def testMetricsCopy(self):
         fitness = np.random.rand()
+        diversity = np.random.rand()
         alive = True
         bm = BasicMetrics(alive=alive,
-                          fitness=float(fitness))
+                          fitness=float(fitness),
+                          diversity=float(diversity))
         bm_copy = copy(bm)
         self.assertTrue(bm == bm_copy)
         self.assertFalse(bm.get_metrics_id() == bm_copy.get_metrics_id())

@@ -1,6 +1,8 @@
+import time
 from typing import Union, List, Tuple, Dict
 import numpy as np
 import matplotlib.pyplot as plt
+import threading
 from matplotlib import cm
 from matplotlib.animation import FuncAnimation
 from python.visualise.FuncOfZInTermsOfXY import FuncOfZInTermsOfXY
@@ -75,7 +77,7 @@ class SurfacePlot:
         self._axis_text_size: int = 14
 
         self._func: FuncOfZInTermsOfXY = func
-        self._func_params: Dict = {} if x is None else func_params
+        self._func_params: Dict = {} if func_params is None else func_params
 
         self._title: str = title
         self._x_label: str = x_label
@@ -101,6 +103,8 @@ class SurfacePlot:
         self._x_ticks = PlotUtil.ticks(v=self._xm, given_ticks=x_ticks)
         self._y_ticks = PlotUtil.ticks(v=self._ym, given_ticks=y_ticks)
         self._z_ticks = PlotUtil.ticks(v=self._zm, given_ticks=z_ticks)
+
+        self._show_thread: threading.Thread = None
 
         return
 
@@ -179,11 +183,17 @@ class SurfacePlot:
         """
         if show_points:
             data_points_for_frame: np.ndarray = self._plot_animation_data.get_data_for_frame(frame_idx=frame_index)
+            p_shape = self._plot_animation_data.frame_data_shape()
             point_idx = 0
             for point in data_points_for_frame:
                 x: float = point[0]
                 y: float = point[1]
-                z: float = self._func(x, y, frame_index, **self._func_params)
+                if p_shape[0] == 2:
+                    z: float = self._func(x, y, frame_index, **self._func_params)
+                elif p_shape[0] == 3:
+                    z: float = point[2]
+                else:
+                    raise ValueError(f'Animation expected shape (n,2) or (n,3) values, but shape was {str(p_shape)}')
                 self._plotted_3d_points[point_idx]._offsets3d = ([y], [x], [z])
                 self._plotted_2d_points[point_idx]._offsets3d = ([y], [x], [self._z_ticks[0]])
                 point_idx += 1
@@ -272,6 +282,35 @@ class SurfacePlot:
         self._rotate(frame_index=frame_index)
         return self._fig,
 
+    def animate_step(self,
+                     frame_index: int,
+                     plot_animation_data: PointAnimationData = None,
+                     points_only: bool = False,
+                     plot_pause_time: float = 0.1) -> None:
+        """
+        Animate a single frame update.
+        :param frame_index: The number of the frame animation & index into x,y animation data points
+        :param plot_animation_data: The class that will supply the latest point data
+        :param points_only: If True just update the points on the plot.
+        :param plot_pause_time: The time in seconds to pause the frame for
+        """
+        plt.pause(plot_pause_time)
+        if not points_only:
+            self._update_z(frame_index=frame_index)
+            self._update_and_plot_surface(frame_index=frame_index)
+
+        if plot_animation_data is not None:
+            self._plot_animation_data = plot_animation_data
+            self._num_animation_points = plot_animation_data.num_frames()
+
+        self._updated_and_plot_contours(frame_index=frame_index)
+        self._update_and_plot_points(show_points=self._show_points, frame_index=frame_index)
+
+        self._fig.canvas.draw()
+        self._fig.canvas.flush_events()
+
+        return
+
     def animate(self,
                 plot_animation_data: PointAnimationData,
                 frame_interval: int = 30,
@@ -289,20 +328,16 @@ class SurfacePlot:
         """
         self._plot_animation_data = plot_animation_data
         self._num_animation_points = plot_animation_data.num_frames()
-
         self._rotate_plot = rotate_plot
         self._rotate_step = rotate_step
-
-        p_shape = self._plot_animation_data.frame_data_shape()
-        if p_shape[0] != 2:
-            raise ValueError(f'Animation expected x,y values, but shape was {str(p_shape)}')
 
         _ = FuncAnimation(self._fig,
                           func=self,
                           frames=self._num_animation_points,
                           interval=frame_interval)
         plt.draw()
-        plt.pause(show_time)
+        if show_time > 0:
+            plt.pause(show_time)
         return
 
     def __call__(self, i, *args, **kwargs):
