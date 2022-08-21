@@ -111,7 +111,8 @@ class TestBasicOrganism(unittest.TestCase):
                                          light_gene=LightToleranceGene(r2, mutation_rate=mutation_rate))
                     g1 = BasicGenome([c1])
                     basic_organism1 = BasicOrganism(genome=g1)
-                    new_organism = BasicOrganism(basic_organism1.mutate(step_size=ss))  # NOQA
+                    basic_organism1.mutate(step_size=ss)
+                    new_organism = BasicOrganism(basic_organism1.get_genome())  # NOQA
                     new_genes = Genome.gene_list(new_organism.get_genome())
                     old_genes = Genome.gene_list(basic_organism1.get_genome())
                     expected_genes = dict()
@@ -135,7 +136,8 @@ class TestBasicOrganism(unittest.TestCase):
                              light_gene=LightToleranceGene(0.5, mutation_rate=0.0))
         g1 = BasicGenome([c1])
         basic_organism1 = BasicOrganism(genome=g1)
-        organism = BasicOrganism(basic_organism1.mutate(step_size=0.0))  # NOQA
+        basic_organism1.mutate(step_size=0.0)
+        organism = BasicOrganism(genome=basic_organism1.get_genome())  # NOQA
 
         env_state = BasicEnvironmentState(avg_hours_of_light_per_day=12,
                                           avg_hours_between_rain=80,
