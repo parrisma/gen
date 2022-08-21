@@ -1,6 +1,6 @@
 {
   "environment": {
-    "num_generation_zero_organisms": 10,
+    "num_generation_zero_organisms": 20,
     "crossover_rate": 0.5,
     "mutation_rate": 0.1
   }

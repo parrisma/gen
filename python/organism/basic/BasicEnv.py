@@ -41,8 +41,9 @@ class BasicEnv(Env):
         self._metrics: Dict[str, Metrics] = {}
         self._selector: Selector = selector
         self._organism_factory: OrganismFactory = organism_factory
-        self._hours_of_light_per_day: float = hours_of_light_per_day
-        self._hours_since_last_rain: float = hours_since_last_rain
+        self._env_light_level: float = (hours_of_light_per_day - 12.0) / 12.0
+        self._env_drought_level: float = (hours_since_last_rain - 12.0) / 12.0
+        self._surface_plot = None
         return
 
     @classmethod
@@ -62,29 +63,26 @@ class BasicEnv(Env):
         x = np.arange(0, 1.01, 0.025)
         y = np.arange(0, 1.01, 0.025)
 
-        ave_light = self.__as_pct(self._hours_of_light_per_day, 24)
-        ave_drought = self.__as_pct(self._hours_since_last_rain, 24)
-
         light_tol_scenario = ParamScenario(scenario_name="Light Tol",
-                                           param_values_by_index=np.array(ave_light).reshape(1))
+                                           param_values_by_index=np.array(self._env_light_level).reshape(1))
         drought_tol_scenario = ParamScenario(scenario_name="Drought Tol",
-                                             param_values_by_index=np.array(ave_drought).reshape(1))
+                                             param_values_by_index=np.array(self._env_drought_level).reshape(1))
 
-        surface_plot = SurfacePlot(title="Environmental Fitness",
-                                   x_label="% of day in drought",
-                                   y_label="% of day in light",
-                                   z_label="Fitness",
-                                   x=x,
-                                   y=y,
-                                   func=BasicOrganism.hybrid_fitness_func,
-                                   func_params={
-                                       BasicOrganism.LIGHT_TOLERANCE: light_tol_scenario,
-                                       BasicOrganism.DROUGHT_TOLERANCE: drought_tol_scenario},
-                                   points=[(0.0, 0.0, 0.0)] * self._num_organisms,
-                                   x_ticks=10,
-                                   y_ticks=10,
-                                   z_ticks=10)
-        surface_plot.plot()
+        self._surface_plot = SurfacePlot(title="Environmental Fitness",
+                                         x_label="% of day in drought",
+                                         y_label="% of day in light",
+                                         z_label="Fitness",
+                                         x=x,
+                                         y=y,
+                                         func=BasicOrganism.hybrid_fitness_func,
+                                         func_params={
+                                             BasicOrganism.LIGHT_TOLERANCE: light_tol_scenario,
+                                             BasicOrganism.DROUGHT_TOLERANCE: drought_tol_scenario},
+                                         points=[(0.0, 0.0, 0.0)] * self._num_organisms,
+                                         x_ticks=10,
+                                         y_ticks=10,
+                                         z_ticks=10)
+        self._surface_plot.plot()
         return
 
     def create_generation_zero(self):
@@ -104,7 +102,7 @@ class BasicEnv(Env):
         Evaluate the conditions that indicate the simulation has ended
         :return: True if the conditions to exit run have been met
         """
-        return len(self._population) == 0
+        return len(self._population) < 2
 
     def run_population(self) -> None:
         """
@@ -131,7 +129,7 @@ class BasicEnv(Env):
         Based on the organisms' fitness & diversity , establish which of the current population should
         survive into the next generation
         """
-        survivors = BasicSelector(selection_probability=0.2).select_survivors(list(self._population.values()))  # NOQA
+        survivors = BasicSelector(selection_probability=0.1).select_survivors(list(self._population.values()))  # NOQA
         self._population = dict([(s.get_id(), s) for s in survivors])
         return
 
@@ -154,7 +152,7 @@ class BasicEnv(Env):
             # Create new organism Genome
             genome: Genome = parents[0].crossover(organism=parents[1], mix_rate=self._crossover_rate)
             new_organism: Organism = self._organism_factory.new(genome=genome)
-            new_organism.mutate(step_size=0.001)
+            new_organism.mutate(step_size=0.01)
             next_generation.append(new_organism)
 
         for organism in next_generation:
@@ -169,15 +167,21 @@ class BasicEnv(Env):
         """
         self.init_visualisation()
         self.create_generation_zero()
+        dpa = DynamicPointAnimation(env_state=self.get_state)
 
+        idx: int = 0
         while not self.termination_conditions_met():
             self.run_population()
 
+            self._surface_plot.animate_step(frame_index=idx,
+                                            plot_animation_data=dpa,
+                                            points_only=True)
             fitness = [o.fitness() for o in self._population.values()]
+            print(f'{fitness}')
             p_min = np.min(fitness)
             p_max = np.max(fitness)
             p_avg = np.average(fitness)
-            print(f'min {p_min:0.5f}  max {p_max:0.5f}  average {p_avg:0.5f}')
+            print(f'min {p_min:0.5f},  max {p_max:0.5f},  average {p_avg:0.5f}, num {len(self._population)}')
 
             self.rank_and_select_survivors()
             self.create_next_generation()
@@ -190,6 +194,6 @@ class BasicEnv(Env):
         Get the current state of the Environment
         :return: The current environment state
         """
-        return BasicEnvironmentState(avg_hours_of_light_per_day=self._hours_of_light_per_day,
-                                     avg_hours_between_rain=self._hours_since_last_rain,
+        return BasicEnvironmentState(avg_hours_of_light_per_day=self._env_light_level,
+                                     avg_hours_between_rain=self._env_drought_level,
                                      population=list(self._population.values()))

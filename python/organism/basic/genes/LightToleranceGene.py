@@ -60,7 +60,9 @@ class LightToleranceGene(Gene):
         """
         self._light_tolerance = Gene.mutate_float(current_value=self._light_tolerance,
                                                   mutation_rate=self._mutation_rate,
-                                                  step_size=step_size)
+                                                  step_size=step_size,
+                                                  v_min=-1.0,
+                                                  v_max=+1.0)
         return
 
     def value(self):

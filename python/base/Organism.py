@@ -93,11 +93,10 @@ class Organism(ABC):
 
     @abstractmethod
     def mutate(self,
-               step_size: float) -> Genome:
+               step_size: float) -> None:
         """
         Randomly mutate the genes that comprise the Genome
         :param step_size: The size of the mutation to randomly apply + / -  the current value of the mutated genes
-        :return: The Genome resulting from the mutation.
         """
         raise NotImplementedError
 

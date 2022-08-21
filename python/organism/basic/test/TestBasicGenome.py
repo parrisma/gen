@@ -1,5 +1,6 @@
 import unittest
 import numpy as np
+from typing import Dict
 from copy import copy
 from python.organism.basic.test.UtilsForTesting import UtilsForTesting
 from python.exceptions.NoSuchChromosomeInGenome import NoSuchChromosomeInGenome
@@ -143,6 +144,39 @@ class TestBasicGenome(unittest.TestCase):
                 g = ch.get_gene(gt)
                 gc = chc.get_gene(gt)
                 self.assertFalse(g.get_gene_id() == gc.get_gene_id())
+
+    @UtilsForTesting.test_case
+    def testGenomeMutate(self):
+        drought_initial_value = 0.0
+        light_initial_value = 0.0
+        dtg = DroughtToleranceGene(drought_initial_value, mutation_rate=0.5)
+        ltg = LightToleranceGene(light_initial_value, mutation_rate=0.5)
+        basic_chromosome = BasicChromosome(drought_gene=dtg,
+                                           light_gene=ltg)
+        genome = BasicGenome(chromosomes=[basic_chromosome])
+
+        prev_gene_values: Dict[type, float] = dict()
+        gene_mutation_count: Dict[type, float] = dict()
+        for k, v in map(lambda x: (type(x), x.value()), BasicGenome.gene_list(genome)):
+            prev_gene_values[k] = v
+            gene_mutation_count[k] = 0
+
+        num_trials: int = 9999
+        for _ in range(num_trials):
+            mutation_step_size = float(np.random.rand() * 0.1)
+            genome = BasicGenome.mutate(genome_to_mutate=genome, step_size=mutation_step_size)
+            for k, v in prev_gene_values.items():
+                new_v = genome.get_chromosome(type(basic_chromosome)).get_gene(k).value()
+                if new_v != v:
+                    # print(f'k {k} new {new_v} old {v} step {mutation_step_size}')
+                    gene_mutation_count[k] = gene_mutation_count[k] + 1
+                    self.assertTrue((abs(new_v - v) - mutation_step_size) < 0.0000001)
+                    prev_gene_values[k] = new_v
+
+        for k in gene_mutation_count.keys():
+            self.assertTrue(gene_mutation_count[k] > 0)
+
+        return
 
 
 if __name__ == "__main__":

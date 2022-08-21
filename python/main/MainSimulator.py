@@ -29,8 +29,8 @@ class MainSimulator:
         """
         Boostrap the environment and run the evolutionary simulation.
         """
-        BasicEnv(hours_of_light_per_day=5.0,
-                 hours_since_last_rain=3,
+        BasicEnv(hours_of_light_per_day=-1,
+                 hours_since_last_rain=-1,
                  conf=Conf(self._config_file),
                  organism_factory=BasicOrganismFactory(),
                  selector=BasicSelector()).run()

@@ -25,6 +25,9 @@ class PlotUtil:
         nx = len(x)
         ny = len(y)
 
+        mx = 0
+        my = 0
+
         # Calculate z using given function.
         _z = np.zeros((nx, ny), dtype='d')
         for i in range(nx):

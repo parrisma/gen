@@ -28,18 +28,22 @@ class DynamicPointAnimation(PointAnimationData):
         if isinstance(state, Callable):
             state = state()
 
-        organisms: List[Organism] = state.get(BasicEnvironmentAttributes.POPULATION)
-        points: np.ndarray = np.zeros((len(organisms), 2))
+        organisms: List[Organism] = state.get_attributes()[BasicEnvironmentAttributes.POPULATION]  # NOQA
+        points: np.ndarray = np.zeros((len(organisms), 3))
         idx: int = 0
         for organism in organisms:
             genome = organism.get_genome()
             gene: Gene = None  # NOQA
             for gene in Genome.gene_list(genome=genome):
                 if isinstance(gene, LightToleranceGene):
-                    points[idx][0] = gene.value()
+                    points[idx][1] = (gene.value() + 1.0) / 2.0
                 if isinstance(gene, DroughtToleranceGene):
-                    points[idx][1] = gene.value()
+                    points[idx][0] = (gene.value() + 1.0) / 2.0
+            points[idx][2] = organism.fitness()
             idx += 1
+
+        for p in points:
+            print(f' x{(p[0] * 2) - 1} y{(p[1] * 2) - 1} z{p[2]}')
         return points
 
     def get_data_for_frame(self,
@@ -61,6 +65,6 @@ class DynamicPointAnimation(PointAnimationData):
     def frame_data_shape(self) -> Tuple:
         """
         The data frame is the x,y coordinate to be re-calculated, so shape is 2,
-        :return: Tuple(2) as frame is simple two float values for x,y
+        :return: Tuple(3) as frame is simple two float values for light gene, drought gene, fitness (x,y,z)
         """
-        return (2,)  # NOQA
+        return (3,)  # NOQA

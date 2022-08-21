@@ -143,7 +143,7 @@ class BasicOrganism(Organism):
 
         :return: Organism fitness expressed as a float.
         """
-        return (self._metrics.get_fitness() + self._metrics.get_diversity()) / 2.0
+        return self._metrics.get_fitness()
 
     def metrics(self) -> Metrics:
         """
@@ -197,13 +197,13 @@ class BasicOrganism(Organism):
                                     to_genome=self.get_genome())
 
     def mutate(self,
-               step_size: Union[float, Dict[type, float]]) -> Genome:
+               step_size: Union[float, Dict[type, float]]):
         """
         Based on a defined <mutation_rate>. introduce random perturbation into the Organisms populations Genes
         :param step_size: An absolute step size as float to be applied to all gene types ot
         :return: The Genome resulting from the mutation.
         """
-        return Genome.mutate(genome_to_mutate=self.get_genome(), step_size=step_size)
+        self._genome = Genome.mutate(genome_to_mutate=self.get_genome(), step_size=step_size)
 
     def __eq__(self, other):
         """
