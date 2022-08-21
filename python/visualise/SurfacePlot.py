@@ -194,8 +194,8 @@ class SurfacePlot:
                     z: float = point[2]
                 else:
                     raise ValueError(f'Animation expected shape (n,2) or (n,3) values, but shape was {str(p_shape)}')
-                self._plotted_3d_points[point_idx]._offsets3d = ([y], [x], [z])
-                self._plotted_2d_points[point_idx]._offsets3d = ([y], [x], [self._z_ticks[0]])
+                self._plotted_3d_points[point_idx]._offsets3d = ([x], [y], [z])
+                self._plotted_2d_points[point_idx]._offsets3d = ([x], [y], [self._z_ticks[0]])
                 point_idx += 1
         return
 

@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from functools import partial
 import concurrent.futures
 import time
@@ -10,10 +10,13 @@ from python.base.OrganismFactory import OrganismFactory
 from python.base.Organism import Organism
 from python.base.Genome import Genome
 from python.base.Metrics import Metrics
+from python.base.Gene import Gene
 from python.organism.basic.BasicEnvironmentState import BasicEnvironmentState
 from python.organism.basic.BasicSelector import BasicSelector
 from python.organism.basic.BasicOrganism import BasicOrganism
 from python.organism.basic.DynamicPointAnimation import DynamicPointAnimation
+from python.organism.basic.genes.LightToleranceGene import LightToleranceGene
+from python.organism.basic.genes.DroughtToleranceGene import DroughtToleranceGene
 from python.exceptions.PopulationExtinct import PopulationExtinct
 from python.visualise.ParamScenario import ParamScenario
 from python.visualise.SurfacePlot import SurfacePlot
@@ -37,12 +40,13 @@ class BasicEnv(Env):
         self._num_organisms: int = conf.config["environment"]["num_generation_zero_organisms"]
         self._crossover_rate: float = conf.config["environment"]["crossover_rate"]
         self._mutation_rate: float = conf.config["environment"]["mutation_rate"]
+        self._mutation_step: float = conf.config["environment"]["mutation_step"]
         self._population: Dict[str, Organism] = {}
         self._metrics: Dict[str, Metrics] = {}
         self._selector: Selector = selector
         self._organism_factory: OrganismFactory = organism_factory
-        self._env_light_level: float = (hours_of_light_per_day - 12.0) / 12.0
-        self._env_drought_level: float = (hours_since_last_rain - 12.0) / 12.0
+        self._env_light_level: float = hours_of_light_per_day / 24.0
+        self._env_drought_level: float = hours_since_last_rain / 24.0
         self._surface_plot = None
         return
 
@@ -58,15 +62,33 @@ class BasicEnv(Env):
         """
         return np.maximum(0, np.minimum(np.absolute(v), lim)) / lim
 
+    def __gene_space(self,
+                     rng: Tuple[float, float],
+                     env_level: float) -> float:
+        """
+        The given environment level expressed as a gene value.
+        :param env_level: The environment level to be re-scaled
+        :return: The re-scaled value as a Gene value
+        """
+        mn, mx = rng
+        return (env_level * (mx - mn)) - mx
+
     def init_visualisation(self):
 
-        x = np.arange(0, 1.01, 0.025)
-        y = np.arange(0, 1.01, 0.025)
+        x = np.arange(0, 1.01, 0.025)  # Light level as % in range 0.0 to 1.0
+        y = np.arange(0, 1.01, 0.025)  # Drought level as % in range 0.0 to 1.0
 
+        # Single value scenarios as we fix the surface to show the optimal fitness function for
+        # the configured light/drought levels. The organism will have the highest fitness when its
+        # genes express a suitability that matches exactly the prevailing light/drought level.
+
+        ell = self.__gene_space(rng=LightToleranceGene.value_range(), env_level=self._env_light_level)
         light_tol_scenario = ParamScenario(scenario_name="Light Tol",
-                                           param_values_by_index=np.array(self._env_light_level).reshape(1))
+                                           param_values_by_index=np.array(ell).reshape(1))
+
+        dll = self.__gene_space(rng=DroughtToleranceGene.value_range(), env_level=self._env_drought_level)
         drought_tol_scenario = ParamScenario(scenario_name="Drought Tol",
-                                             param_values_by_index=np.array(self._env_drought_level).reshape(1))
+                                             param_values_by_index=np.array(dll).reshape(1))
 
         self._surface_plot = SurfacePlot(title="Environmental Fitness",
                                          x_label="% of day in drought",
@@ -152,7 +174,7 @@ class BasicEnv(Env):
             # Create new organism Genome
             genome: Genome = parents[0].crossover(organism=parents[1], mix_rate=self._crossover_rate)
             new_organism: Organism = self._organism_factory.new(genome=genome)
-            new_organism.mutate(step_size=0.01)
+            new_organism.mutate(step_size=self._mutation_step)
             next_generation.append(new_organism)
 
         for organism in next_generation:

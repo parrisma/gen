@@ -1,3 +1,4 @@
+from typing import Tuple
 from python.base.Gene import Gene
 from python.id.GeneId import GeneId
 
@@ -37,6 +38,13 @@ class GeneForTesting(Gene):
     def value(self):
         """
         Return the value of the Gene - the return type is specific to the Gene
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def value_range(cls) -> Tuple[float, float]:
+        """
+        Return the value range of the Gene
         """
         raise NotImplementedError
 

@@ -109,8 +109,8 @@ class BasicOrganism(Organism):
         """
         bm: Dict[BasicEnvironmentAttributes, object] = environment_state.get_attributes()  # NOQA
 
-        ave_light = BasicOrganism.__as_pct(bm.get(BasicEnvironmentAttributes.AVG_HOURS_OF_LIGHT_PER_DAY), 24)
-        ave_drought = BasicOrganism.__as_pct(bm.get(BasicEnvironmentAttributes.AVG_HOURS_BETWEEN_RAIN), 24)
+        ave_light = float(bm.get(BasicEnvironmentAttributes.AVG_HOURS_OF_LIGHT_PER_DAY))
+        ave_drought = float(bm.get(BasicEnvironmentAttributes.AVG_HOURS_BETWEEN_RAIN))
 
         kwargs = {BasicOrganism.LIGHT_TOLERANCE: self._light_tolerance.value(),
                   BasicOrganism.DROUGHT_TOLERANCE: self._drought_tolerance.value()}

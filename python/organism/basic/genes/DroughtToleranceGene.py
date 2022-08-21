@@ -1,5 +1,6 @@
 import numpy as np
 from copy import copy
+from typing import Tuple
 from python.exceptions.GeneTypeMismatch import GeneTypeMismatch
 from python.base.Gene import Gene
 from python.id.GeneId import GeneId
@@ -10,29 +11,30 @@ class DroughtToleranceGene(Gene):
     A Gene that controls the tolerance of an organism to wet or dry conditions
     """
 
-    _id: GeneId
-    _drought_tolerance: float
-    _mutation_rate: float
+    __VALUE_MIN: float = -1.0
+    __VALUE_MAX: float = +1.0
 
     def __init__(self,
                  gene_value: float = None,
                  mutation_rate: float = 0.1):
 
-        self._id = GeneId()
+        self._id: GeneId = GeneId()
 
         if mutation_rate > 1.0 or mutation_rate < 0.0:
             raise ValueError(f'mutation_rate is a probability and must be in range 0.0 to 1.0 - given {mutation_rate}')
-        self._mutation_rate = mutation_rate
+        self._mutation_rate: float = mutation_rate
 
         # Range is -1 likes wet to +1 likes dry
         #
+        self._drought_tolerance: float = 0.0
         if gene_value is None:
             self._drought_tolerance = (np.random.rand() - 0.5) * 2.0
         else:
-            if -1.0 <= gene_value <= 1.0:
+            if self.__VALUE_MIN <= gene_value <= self.__VALUE_MAX:
                 self._drought_tolerance = gene_value
             else:
-                raise ValueError(f'Drought tolerance must be in range -1.0 to +1.0 but given {gene_value}')
+                raise ValueError(
+                    f'Drought tolerance must be range {self.__VALUE_MIN} to {self.__VALUE_MAX} given {gene_value}')
         return
 
     def get_gene_id(self) -> GeneId:
@@ -71,6 +73,13 @@ class DroughtToleranceGene(Gene):
         Return the value of the Gene - the return type is specific to the Gene
         """
         return float(self._drought_tolerance)
+
+    @classmethod
+    def value_range(cls) -> Tuple[float, float]:
+        """
+        Return the value range of the Gene
+        """
+        return DroughtToleranceGene.__VALUE_MIN, DroughtToleranceGene.__VALUE_MAX
 
     def __copy__(self):
         """

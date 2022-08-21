@@ -1,4 +1,5 @@
 import numpy as np
+from typing import Tuple
 from python.exceptions.GeneTypeMismatch import GeneTypeMismatch
 from python.base.Gene import Gene
 from python.id.GeneId import GeneId
@@ -9,29 +10,30 @@ class LightToleranceGene(Gene):
     A Gene that controls the tolerance of an organism to bright or dark conditions
     """
 
-    _id: GeneId
-    _light_tolerance: float
-    _mutation_rate: float
+    __VALUE_MIN: float = -1.0
+    __VALUE_MAX: float = +1.0
 
     def __init__(self,
                  gene_value: float = None,
                  mutation_rate: float = 0.2):
 
-        self._id = GeneId()
+        self._id: GeneId = GeneId()
 
         if mutation_rate > 1.0 or mutation_rate < 0.0:
             raise ValueError(f'mutation_rate is a probability and must be in range 0.0 to 1.0 - given {mutation_rate}')
-        self._mutation_rate = mutation_rate
+        self._mutation_rate: float = mutation_rate
 
         # Range is -1 likes dark to +1 likes light
         #
+        self._light_tolerance: float = 0
         if gene_value is None:
             self._light_tolerance = (np.random.rand() - 0.5) * 2.0
         else:
-            if -1.0 <= gene_value <= 1.0:
+            if self.__VALUE_MIN <= gene_value <= self.__VALUE_MAX:
                 self._light_tolerance = gene_value
             else:
-                raise ValueError(f'Light tolerance must be in range -1.0 to +1.0 but given {gene_value}')
+                raise ValueError(
+                    f'Light tolerance must be range {self.__VALUE_MIN} to {self.__VALUE_MAX} but {gene_value}')
         return
 
     def get_gene_id(self) -> GeneId:
@@ -70,6 +72,13 @@ class LightToleranceGene(Gene):
         Return the value of the Gene - the return type is specific to the Gene
         """
         return float(self._light_tolerance)
+
+    @classmethod
+    def value_range(cls) -> Tuple[float, float]:
+        """
+        Return the value range of the Gene
+        """
+        return LightToleranceGene.__VALUE_MIN, LightToleranceGene.__VALUE_MAX
 
     def type(self) -> str:
         """

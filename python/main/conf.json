@@ -2,6 +2,8 @@
   "environment": {
     "num_generation_zero_organisms": 20,
     "crossover_rate": 0.5,
-    "mutation_rate": 0.1
+    "mutation_rate": 0.1,
+    "mutation_step": 0.01,
+    "primary_selection_probability": 0.1
   }
 }
