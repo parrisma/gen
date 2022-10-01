@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-deployment
+  namespace: kafka
+  labels:
+    app: kafka
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      hostname: kafka-host
+      volumes:
+        - name: kafka-data-volume
+          persistentVolumeClaim:
+            claimName: kafka-data-volume-pv-claim
+        - name: kafka-log-volume
+          persistentVolumeClaim:
+            claimName: kafka-log-volume-pv-claim
+      containers:
+        - name: kafka-cat
+          image: confluentinc/cp-kafkacat
+          command: [ "/bin/sh" ]
+          args: [ "-c", "trap : TERM INT; sleep infinity & wait" ]
+        - name: zookeeper
+          image: wurstmeister/zookeeper:latest
+        - name: kafka-broker
+          image: wurstmeister/kafka:latest
+          env:
+            - name: KAFKA_ADVERTISED_LISTENERS
+              value: INSIDE://:19092, OUTSIDE://arther-2:31211
+            - name: KAFKA_LISTENERS
+              value: INSIDE://:19092, OUTSIDE://:19093
+            - name: KAFKA_INTER_BROKER_LISTENER_NAME
+              value: INSIDE
+            - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+              value: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+            - name: KAFKA_ZOOKEEPER_CONNECT
+              value: kafka-host:2181
+            - name: KAFKA_CREATE_TOPICS
+              value: "gen-basic:1:1:compact"
+            - name: LOG_DIR
+              value: "/var/log/kafka"
+          volumeMounts:
+            - name: kafka-data-volume
+              mountPath: "/var/data"
+            - name: kafka-log-volume
+              mountPath: "/var/log"
+

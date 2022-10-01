@@ -9,16 +9,23 @@ class BasicSelector(Selector):
     _selection_probability: float  # Probability of selection of the highest ranking organism
 
     def __init__(self,
-                 selection_probability: float = 0.2):
+                 selection_probability: float = 0.2,
+                 fitness_weight: float = 0.8):
         """
         Constructor.
         :param selection_probability: The probability of selection of the highest ranking organism
+        :param fitness_weight: The proportion of selection based onb fitness, diversity weight = 1 - fitness_weight
 
         Note: fitness_weight + diversity_weight are normalised to sum to 1.0 so are relative to each other
         """
         if selection_probability <= 0.0 or selection_probability >= 1.0:
             raise ValueError("Selection probability must be greater than zero and less than or equal to one")
         self._selection_probability = selection_probability
+
+        if fitness_weight < 0 or fitness_weight > 1:
+            raise ValueError(f"fitness weight is a factor in range 0.0 to 1.0 but given {fitness_weight}")
+        self._fitness_weight = fitness_weight
+        self._diversity_weight = 1.0 - self._fitness_weight
 
         return
 
@@ -37,8 +44,8 @@ class BasicSelector(Selector):
         probs = Selector.rank_selection_probabilities(initial_prob=self._selection_probability,
                                                       num=len(population) + 1)
         sorted_population = copy(population)
-        sorted_population = sorted(sorted_population,
-                                   key=lambda o: o.metrics().get_fitness() * .55 + o.metrics().get_diversity() * .45,
+        sorted_population = sorted(sorted_population, key=lambda
+            o: o.metrics().get_fitness() * self._fitness_weight + o.metrics().get_diversity() * self._diversity_weight,
                                    reverse=True)
         sorted_population.append(None)
         survivors = np.random.choice(a=sorted_population, p=probs, size=len(population), replace=True)

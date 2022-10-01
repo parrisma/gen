@@ -6,12 +6,18 @@ from python.organism.basic.genes.LightToleranceGene import LightToleranceGene
 from python.organism.basic.BasicChromosome import BasicChromosome
 from python.organism.basic.BasicGenome import BasicGenome
 from python.organism.basic.BasicOrganism import BasicOrganism
+from rltrace.Trace import Trace
 
 
 class BasicOrganismFactory(OrganismFactory):
     """
     Create basic Organisms
     """
+
+    def __init__(self,
+                 trace: Trace):
+        self._trace = trace
+        return
 
     def new(self,
             genome: Genome = None) -> Organism:
@@ -22,7 +28,8 @@ class BasicOrganismFactory(OrganismFactory):
         """
         new_organism: Organism = None  # NOQA
         if genome is None:
-            new_organism = BasicOrganism(genome=
+            new_organism = BasicOrganism(session_uuid=self._trace.session_uuid,
+                                         genome=
                                          BasicGenome([BasicChromosome(drought_gene=DroughtToleranceGene(),
                                                                       light_gene=LightToleranceGene())]))
         else:

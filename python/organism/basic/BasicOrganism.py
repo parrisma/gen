@@ -13,6 +13,8 @@ from python.organism.basic.BasicChromosome import BasicChromosome
 from python.organism.basic.BasicGenome import BasicGenome
 from python.organism.basic.genes.LightToleranceGene import LightToleranceGene
 from python.organism.basic.genes.DroughtToleranceGene import DroughtToleranceGene
+from rltrace.Trace import LogLevel
+from rltrace.elastic.ElasticTraceBootStrap import ElasticTraceBootStrap
 
 
 class BasicOrganism(Organism):
@@ -32,8 +34,12 @@ class BasicOrganism(Organism):
         return np.maximum(0, np.minimum(np.absolute(v), lim)) / lim
 
     def __init__(self,
+                 session_uuid: str,
                  genome: BasicGenome):
         self._id: OrganismId = OrganismId()
+        self._trace = ElasticTraceBootStrap(log_level=LogLevel.debug,
+                                            session_uuid=session_uuid,
+                                            index_name='genetic_simulator').trace
         self._genome: BasicGenome = genome
         self._metrics: BasicMetrics = BasicMetrics(alive=True, fitness=Metrics.LEAST_FIT, diversity=0.0)
         # Express Chromosomes
@@ -107,6 +113,7 @@ class BasicOrganism(Organism):
         :param environment_state: The current state of the environment in which the organism is living.
         :return: A reference to this (self) Organism after it has executed a life cycle.
         """
+        self._trace().debug(f'Organism {self._id} run')
         bm: Dict[BasicEnvironmentAttributes, object] = environment_state.get_attributes()  # NOQA
 
         ave_light = float(bm.get(BasicEnvironmentAttributes.AVG_HOURS_OF_LIGHT_PER_DAY))

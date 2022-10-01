@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-cat-deployment
+  namespace: kafka
+  labels:
+    app: kafka
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      hostname: kafka-host
+      containers:
+        - name: kafka-cat
+          image: confluentinc/cp-kafkacat
+          command: [ "/bin/sh" ]
+          args: [ "-c", "trap : TERM INT; sleep infinity & wait" ]
