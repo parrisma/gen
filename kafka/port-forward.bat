@@ -1,0 +1,1 @@
+netsh interface portproxy add v4tov4 listenport=19093 listenaddress=arther-2 connectport=<NodePort> connectaddress=arther-2

@@ -1,25 +1,20 @@
-from time import sleep
+import os
 from json import dumps
 from kafka import KafkaProducer
+from util.K8Util import K8Util
 
+hostname = os.getenv('COMPUTERNAME')
+node_port_id = K8Util.get_node_port_number()
 
-def on_send_success(record_metadata):
-    print(record_metadata.topic)
-    print(record_metadata.partition)
-    print(record_metadata.offset)
-
-
-producer = KafkaProducer(bootstrap_servers=['arther-2:31211'],
+producer = KafkaProducer(bootstrap_servers=[f'{hostname}:{node_port_id}'],
                          value_serializer=lambda x:
                          dumps(x).encode('utf-8'))
 
 for e in range(1000):
     data = {'number': e}
-    future = record_metadata = producer.send('gen-basic', value=data)
-    # Block for 'synchronous' sends
+    future = producer.send('gen-basic1', value=data)
     try:
         record_metadata = future.get(timeout=10)
-        # Successful result returns assigned partition and offset
         print(record_metadata.topic)
         print(record_metadata.partition)
         print(record_metadata.offset)
