@@ -1,14 +1,15 @@
 import sys
 import os
-from time import sleep
-from typing import Dict
 from json import loads, dumps
 from kafka import KafkaConsumer, TopicPartition, KafkaProducer
 from python.main.BaseArgParser import BaseArgParser
+from Interface.Agent import Agent
 from util.K8Util import K8Util
+from util.InvocationHandler import InvocationHandler
+from python.id.EntityId import EntityId
 
 
-class KafkaAgent:
+class KafkaAgent(Agent):
     def __init__(self):
         args = self._get_args()
         self._initiator: bool = args.initiator
@@ -19,6 +20,7 @@ class KafkaAgent:
         self._topic_2: str = args.topic_2
         self._kafka_group: str = args.kafka_group
 
+        self._id = EntityId()
         if self._initiator:
             self._listen_topic = self._topic_1
             self._command_topic = self._topic_2
@@ -37,35 +39,64 @@ class KafkaAgent:
 
         self._value: int = 0
 
+        self._invocation_handler: InvocationHandler = InvocationHandler(agent=self,
+                                                                        consumer=self._consumer,
+                                                                        producer=self._producer,
+                                                                        request_topic=self._command_topic)
+
         return
+
+    def name(self) -> str:
+        """
+        The unique name of the agent
+        """
+        return self._agent_name
+
+    def uuid(self) -> str:
+        """
+        The UUID of the agent
+        """
+        return self._id.as_str()
 
     def run(self) -> None:
         print(f'Agent {self._agent_name} run started')
         self._connect_to_topic()
         if self._initiator:
-            self._send_next_value()
-        while True:
-            self._consumer.seek_to_end()
-            for message in self._consumer:
-                print(f'Agent {self._agent_name} received message {message}')
-                self._update_value(msg_as_json=message.value)
-                self._send_next_value()
-                sleep(2)
+            self._send_next_value_request()
+        self._invocation_handler.process_messages()
+
+    def _update(self,
+                value: int,
+                **kwargs) -> None:
+        self._update_value(value=value)
+        response_id = kwargs.get(InvocationHandler.response_id,
+                                 EntityId().as_str())
+        if self._initiator:
+            self._send_next_value_request()
+        else:
+            self._send_next_value_response(response_id=response_id)
+        return
 
     def _update_value(self,
-                      msg_as_json: Dict) -> None:
-        value = msg_as_json['number']
+                      value: int) -> None:
         self._value = value
         print(f'Agent {self._agent_name} updated with value {value}')
         return
 
-    def _send_next_value(self):
+    def _send_next_value_request(self):
         print(f'Agent {self._agent_name} update value {self._value} -> {self._value + 1}')
         self._value += 1
-        data = {'number': self._value}
-        self._producer.send(self._command_topic, value=data)
-        print(f'Agent {self._agent_name} sent  value {self._value} to {self._command_topic}')
-        self._producer.flush()
+        self._invocation_handler.send_request(remote_method_handler=self._update,
+                                              remote_method_args={'value': self._value})
+        return
+
+    def _send_next_value_response(self,
+                                  response_id: str):
+        print(f'Agent {self._agent_name} update value {self._value} -> {self._value + 1}')
+        self._value += 1
+        self._invocation_handler.send_response(remote_method_handler=self._update,
+                                               remote_method_args={'value': self._value},
+                                               response_id=response_id)
         return
 
     def _create_producer_side(self) -> KafkaProducer:
