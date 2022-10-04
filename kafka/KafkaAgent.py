@@ -1,5 +1,6 @@
 import sys
 import os
+import pickle
 from json import loads, dumps
 from kafka import KafkaConsumer, TopicPartition, KafkaProducer
 from python.main.BaseArgParser import BaseArgParser
@@ -102,7 +103,7 @@ class KafkaAgent(Agent):
     def _create_producer_side(self) -> KafkaProducer:
         producer = KafkaProducer(bootstrap_servers=[self._kafka_broker_connection_string],
                                  value_serializer=lambda x:
-                                 dumps(x).encode('utf-8'))
+                                 pickle.dumps(x))
         print(f'Agent {self._agent_name} Producer created on {self._kafka_broker_connection_string}')
         return producer
 
@@ -110,7 +111,7 @@ class KafkaAgent(Agent):
         consumer = KafkaConsumer(bootstrap_servers=[self._kafka_broker_connection_string],
                                  group_id=self._kafka_group,
                                  auto_offset_reset='latest',
-                                 value_deserializer=lambda x: loads(x.decode('utf-8')))
+                                 value_deserializer=lambda x: pickle.loads(x))
         print(f'Agent {self._agent_name} Consumer created on {self._kafka_broker_connection_string}')
         return consumer
 

@@ -16,3 +16,9 @@ class Agent(ABC):
         The UUID of the agent
         """
         pass
+
+    def __str__(self) -> str:
+        return f'Agent: {self.name()} @ id: {self.uuid()}'
+
+    def __repr__(self) -> str:
+        return self.__str__()

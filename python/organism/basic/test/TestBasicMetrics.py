@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 from copy import copy
 from typing import Dict
-from python.organism.basic.test.UtilsForTesting import UtilsForTesting
+from python.organism.basic.test.BasicUtilsForTesting import BasicUtilsForTesting
 from python.organism.basic.BasicMetrics import BasicMetrics
 
 
@@ -27,7 +27,7 @@ class TestBasicMetrics(unittest.TestCase):
         print(f'- - - - - - C A S E {TestBasicMetrics._run} Passed - - - - - -\n')
         return
 
-    @UtilsForTesting.test_case
+    @BasicUtilsForTesting.test_case
     def testBasicMetricsConstructor(self):
         ids_already_seen: Dict[str, str] = {}
         for _ in range(100):
@@ -42,10 +42,10 @@ class TestBasicMetrics(unittest.TestCase):
             self.assertFalse(bm.get_metrics_id() in ids_already_seen)
             ids_already_seen[bm.get_metrics_id()] = bm.get_metrics_id()
             self.assertTrue(bm.is_alive() == alive)
-            self.assertTrue(bm.get_fitness() - fitness < UtilsForTesting.MARGIN_OF_ERROR)
+            self.assertTrue(bm.get_fitness() - fitness < BasicUtilsForTesting.MARGIN_OF_ERROR)
         return
 
-    @UtilsForTesting.test_case
+    @BasicUtilsForTesting.test_case
     def testMetricsCopy(self):
         fitness = np.random.rand()
         diversity = np.random.rand()

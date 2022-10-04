@@ -113,7 +113,7 @@ class BasicOrganism(Organism):
         :param environment_state: The current state of the environment in which the organism is living.
         :return: A reference to this (self) Organism after it has executed a life cycle.
         """
-        self._trace().debug(f'Organism {self._id} run')
+        self._trace.log(f'Organism {self._id} run')
         bm: Dict[BasicEnvironmentAttributes, object] = environment_state.get_attributes()  # NOQA
 
         ave_light = float(bm.get(BasicEnvironmentAttributes.AVG_HOURS_OF_LIGHT_PER_DAY))

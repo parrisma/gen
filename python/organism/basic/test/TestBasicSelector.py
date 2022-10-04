@@ -3,7 +3,7 @@ from typing import List, Dict
 import numpy as np
 from python.base.Organism import Organism
 from python.base.Selector import Selector
-from python.organism.basic.test.UtilsForTesting import UtilsForTesting
+from python.organism.basic.test.BasicUtilsForTesting import BasicUtilsForTesting
 from python.organism.basic.BasicSelector import BasicSelector
 from python.organism.basic.test.OrganismForTesting import OrganismForTesting
 
@@ -29,7 +29,7 @@ class TestBasicSelector(unittest.TestCase):
         print(f'- - - - - - C A S E {TestBasicSelector._run} Passed - - - - - -\n')
         return
 
-    @UtilsForTesting.test_case
+    @BasicUtilsForTesting.test_case
     def testSelectionProbabilityGenerator(self):
         expected_probs: List[float] = [  # expected probs for 10 items with initial prob of selection = 20%
             0.2, 0.16, 0.128, 0.1024, 0.08192, 0.065536, 0.0524288,
@@ -37,10 +37,10 @@ class TestBasicSelector(unittest.TestCase):
         actual_probs = Selector.rank_selection_probabilities(initial_prob=.2, num=10)
         self.assertTrue(np.sum(actual_probs) == 1.0)
         for expected, actual in zip(expected_probs, actual_probs):
-            self.assertTrue(expected - actual < UtilsForTesting.MARGIN_OF_ERROR)
+            self.assertTrue(expected - actual < BasicUtilsForTesting.MARGIN_OF_ERROR)
         return
 
-    @UtilsForTesting.test_case
+    @BasicUtilsForTesting.test_case
     def testSelectionOfOrganisms(self):
         bs = BasicSelector(selection_probability=0.2)
         num_to_generate: int = 10

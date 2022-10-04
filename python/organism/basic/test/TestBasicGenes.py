@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 from copy import copy
 from python.base.Gene import Gene
-from python.organism.basic.test.UtilsForTesting import UtilsForTesting
+from python.organism.basic.test.BasicUtilsForTesting import BasicUtilsForTesting
 from python.organism.basic.genes.DroughtToleranceGene import DroughtToleranceGene
 from python.organism.basic.genes.LightToleranceGene import LightToleranceGene
 
@@ -28,7 +28,7 @@ class TestBasicGenes(unittest.TestCase):
         print(f'- - - - - - C A S E {TestBasicGenes._run} Passed - - - - - -\n')
         return
 
-    @UtilsForTesting.test_case
+    @BasicUtilsForTesting.test_case
     def testBasicGeneConstruction(self):
         for gene_type in [DroughtToleranceGene, LightToleranceGene]:
             for r in np.random.random_sample(10):
@@ -36,7 +36,7 @@ class TestBasicGenes(unittest.TestCase):
                 self.assertEqual(r, gene.value())
         return
 
-    @UtilsForTesting.test_case
+    @BasicUtilsForTesting.test_case
     def testGeneMutation(self):
         for gene_type in [DroughtToleranceGene, LightToleranceGene]:
             mutation_rate: float = float(np.random.rand())
@@ -47,10 +47,10 @@ class TestBasicGenes(unittest.TestCase):
                 step_size = float(np.random.rand())
                 gene.mutate(step_size=step_size)
                 new_value = gene.value()
-                self.assertTrue((np.absolute(old_value - new_value) - step_size) <= UtilsForTesting.MARGIN_OF_ERROR)
+                self.assertTrue((np.absolute(old_value - new_value) - step_size) <= BasicUtilsForTesting.MARGIN_OF_ERROR)
         return
 
-    @UtilsForTesting.test_case
+    @BasicUtilsForTesting.test_case
     def testGeneDiversity(self):
         for gene_type in [DroughtToleranceGene, LightToleranceGene]:
             for r1, r2 in np.random.rand(1000, 2):
@@ -59,7 +59,7 @@ class TestBasicGenes(unittest.TestCase):
                 self.assertTrue(gene1.get_diversity(gene2) == (r1 - r2) ** 2)
         return
 
-    @UtilsForTesting.test_case
+    @BasicUtilsForTesting.test_case
     def testGeneExceptions(self):
 
         for gene_type in [DroughtToleranceGene, LightToleranceGene]:
@@ -68,7 +68,7 @@ class TestBasicGenes(unittest.TestCase):
                     _ = gene_type(gene_value=v)
         return
 
-    @UtilsForTesting.test_case
+    @BasicUtilsForTesting.test_case
     def testGeneCopy(self):
         dtg = DroughtToleranceGene(gene_value=float(np.random.rand()))
         ltg = LightToleranceGene(gene_value=float(np.random.rand()))

@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 from copy import copy
-from python.organism.basic.test.UtilsForTesting import UtilsForTesting
+from python.organism.basic.test.BasicUtilsForTesting import BasicUtilsForTesting
 from python.organism.basic.test.GeneForTesting import GeneForTesting
 from python.organism.basic.BasicChromosome import BasicChromosome
 from python.organism.basic.genes.DroughtToleranceGene import DroughtToleranceGene
@@ -32,35 +32,35 @@ class TestBasicChromosome(unittest.TestCase):
         print(f'- - - - - - C A S E {TestBasicChromosome._run} Passed - - - - - -\n')
         return
 
-    @UtilsForTesting.test_case
+    @BasicUtilsForTesting.test_case
     def testBasicChromosomeConstruction(self):
         basic_chromosome = BasicChromosome()
         self.assertTrue(len(str(basic_chromosome.get_chromosome_id())) > 0)
         return
 
-    @UtilsForTesting.test_case
+    @BasicUtilsForTesting.test_case
     def testChromosomeGeneComposition(self):
         basic_chromosome = BasicChromosome()
         gene_types = basic_chromosome.get_gene_types()
-        UtilsForTesting.test_types(test_case=self,
-                                   actual_types=gene_types,
-                                   expected_types=[DroughtToleranceGene, LightToleranceGene])
+        BasicUtilsForTesting.test_types(test_case=self,
+                                        actual_types=gene_types,
+                                        expected_types=[DroughtToleranceGene, LightToleranceGene])
         return
 
-    @UtilsForTesting.test_case
+    @BasicUtilsForTesting.test_case
     def testChromosomeGeneConstructor(self):
         dtg = DroughtToleranceGene(.314159)
         ltg = LightToleranceGene(-0.314159)
         basic_chromosome = BasicChromosome(drought_gene=dtg,
                                            light_gene=ltg)
 
-        UtilsForTesting.verify_matching_basic_chromosome_and_genes(test_case=self,
-                                                                   basic_chromosome=basic_chromosome,
-                                                                   ltg=ltg,
-                                                                   dtg=dtg)
+        BasicUtilsForTesting.verify_matching_basic_chromosome_and_genes(test_case=self,
+                                                                        basic_chromosome=basic_chromosome,
+                                                                        ltg=ltg,
+                                                                        dtg=dtg)
         return
 
-    @UtilsForTesting.test_case
+    @BasicUtilsForTesting.test_case
     def testChromosomeGeneSetGet(self):
         basic_chromosome = BasicChromosome()
         dtg = DroughtToleranceGene(.314159)
@@ -70,16 +70,16 @@ class TestBasicChromosome(unittest.TestCase):
         basic_chromosome.set_gene(ltg)
 
         gene_types = basic_chromosome.get_gene_types()
-        UtilsForTesting.test_types(test_case=self,
-                                   actual_types=gene_types,
-                                   expected_types=[DroughtToleranceGene, LightToleranceGene])
+        BasicUtilsForTesting.test_types(test_case=self,
+                                        actual_types=gene_types,
+                                        expected_types=[DroughtToleranceGene, LightToleranceGene])
 
-        UtilsForTesting.verify_matching_basic_chromosome_and_genes(test_case=self,
-                                                                   basic_chromosome=basic_chromosome,
-                                                                   ltg=ltg,
-                                                                   dtg=dtg)
+        BasicUtilsForTesting.verify_matching_basic_chromosome_and_genes(test_case=self,
+                                                                        basic_chromosome=basic_chromosome,
+                                                                        ltg=ltg,
+                                                                        dtg=dtg)
 
-    @UtilsForTesting.test_case
+    @BasicUtilsForTesting.test_case
     def testChromosomeExceptions(self):
         dtg = DroughtToleranceGene(.314159)
         ltg = LightToleranceGene(-0.314159)
@@ -99,7 +99,7 @@ class TestBasicChromosome(unittest.TestCase):
 
         return
 
-    @UtilsForTesting.test_case
+    @BasicUtilsForTesting.test_case
     def testChromosomeDiversity(self):
         for r1, r2, r3, r4 in np.random.rand(1000, 4):
             c1 = BasicChromosome(drought_gene=DroughtToleranceGene(r1), light_gene=LightToleranceGene(r2))
@@ -108,7 +108,7 @@ class TestBasicChromosome(unittest.TestCase):
 
             return
 
-    @UtilsForTesting.test_case
+    @BasicUtilsForTesting.test_case
     def testChromosomeCopy(self):
         dtg = DroughtToleranceGene(.314159)
         ltg = LightToleranceGene(-0.314159)

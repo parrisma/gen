@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from python.organism.basic.test.UtilsForTesting import UtilsForTesting
+from python.organism.basic.test.BasicUtilsForTesting import BasicUtilsForTesting
 from python.visualise.ParamScenario import ParamScenario
 
 
@@ -25,7 +25,7 @@ class TestParamScenario(unittest.TestCase):
         print(f'- - - - - - C A S E {TestParamScenario._run} Passed - - - - - -\n')
         return
 
-    @UtilsForTesting.test_case
+    @BasicUtilsForTesting.test_case
     def testParamScenarioSingleValue(self):
         num_to_test = 100
         test_value: np.ndarray = np.random.rand()
@@ -38,7 +38,7 @@ class TestParamScenario(unittest.TestCase):
 
         return
 
-    @UtilsForTesting.test_case
+    @BasicUtilsForTesting.test_case
     def testParamScenarioMultiValue(self):
         num_to_test = 100
         test_values: np.ndarray = np.random.rand(num_to_test)
