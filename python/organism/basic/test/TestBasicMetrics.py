@@ -4,10 +4,15 @@ from copy import copy
 from typing import Dict
 from python.organism.basic.test.BasicUtilsForTesting import BasicUtilsForTesting
 from python.organism.basic.BasicMetrics import BasicMetrics
+from python.id.EntityId import EntityId
+from rltrace.Trace import Trace, LogLevel
+from test.UtilsForTesting import UtilsForTesting
 
 
 class TestBasicMetrics(unittest.TestCase):
     _run: int
+    _session_id: str = EntityId().as_str()
+    _trace: Trace = Trace(log_level=LogLevel.debug, log_dir_name=".", log_file_name="trace.log")
 
     def __init__(self, *args, **kwargs):
         super(TestBasicMetrics, self).__init__(*args, **kwargs)
@@ -16,15 +21,23 @@ class TestBasicMetrics(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls._run = 0
+        cls._trace.log(f'- - - - - - S T A R T - - - - - - \n')
+        UtilsForTesting.clean_up_test_files()
         return
 
     def setUp(self) -> None:
         TestBasicMetrics._run += 1
-        print(f'- - - - - - C A S E {TestBasicMetrics._run} Start - - - - - -')
+        self._trace.log(f'- - - - - - C A S E {TestBasicMetrics._run} Start - - - - - -')
         return
 
     def tearDown(self) -> None:
-        print(f'- - - - - - C A S E {TestBasicMetrics._run} Passed - - - - - -\n')
+        self._trace.log(f'- - - - - - C A S E {TestBasicMetrics._run} Passed - - - - - -\n')
+        return
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls._trace.log(f'- - - - - - E N D - - - - - - \n')
+        UtilsForTesting.clean_up_test_files()
         return
 
     @BasicUtilsForTesting.test_case

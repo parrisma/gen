@@ -9,10 +9,15 @@ from python.organism.basic.genes.LightToleranceGene import LightToleranceGene
 from python.exceptions.NoSuchGeneTypeInChromosome import NoSuchGeneTypeInChromosome
 from python.exceptions.NotAGene import NotAGene
 from python.exceptions.ChromosomeMissMatch import ChromosomeMissMatch
+from python.id.EntityId import EntityId
+from rltrace.Trace import Trace, LogLevel
+from test.UtilsForTesting import UtilsForTesting
 
 
 class TestBasicChromosome(unittest.TestCase):
     _run: int
+    _session_id: str = EntityId().as_str()
+    _trace: Trace = Trace(log_level=LogLevel.debug, log_dir_name=".", log_file_name="trace.log")
 
     def __init__(self, *args, **kwargs):
         super(TestBasicChromosome, self).__init__(*args, **kwargs)
@@ -21,17 +26,25 @@ class TestBasicChromosome(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls._run = 0
+        cls._trace.log(f'- - - - - - S T A R T - - - - - - \n')
+        UtilsForTesting.clean_up_test_files()
         return
 
     def setUp(self) -> None:
         TestBasicChromosome._run += 1
-        print(f'- - - - - - C A S E {TestBasicChromosome._run} Start - - - - - -')
+        self._trace.log(f'- - - - - - C A S E {TestBasicChromosome._run} Start - - - - - -')
         return
 
     def tearDown(self) -> None:
-        print(f'- - - - - - C A S E {TestBasicChromosome._run} Passed - - - - - -\n')
+        self._trace.log(f'- - - - - - C A S E {TestBasicChromosome._run} Passed - - - - - -\n')
         return
 
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls._trace.log(f'- - - - - - E N D - - - - - - \n')
+        UtilsForTesting.clean_up_test_files()
+        return
+    
     @BasicUtilsForTesting.test_case
     def testBasicChromosomeConstruction(self):
         basic_chromosome = BasicChromosome()

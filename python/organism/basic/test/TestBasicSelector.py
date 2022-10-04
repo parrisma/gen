@@ -6,10 +6,15 @@ from python.base.Selector import Selector
 from python.organism.basic.test.BasicUtilsForTesting import BasicUtilsForTesting
 from python.organism.basic.BasicSelector import BasicSelector
 from python.organism.basic.test.OrganismForTesting import OrganismForTesting
+from python.id.EntityId import EntityId
+from rltrace.Trace import Trace, LogLevel
+from test.UtilsForTesting import UtilsForTesting
 
 
 class TestBasicSelector(unittest.TestCase):
     _run: int
+    _session_id: str = EntityId().as_str()
+    _trace: Trace = Trace(log_level=LogLevel.debug, log_dir_name=".", log_file_name="trace.log")
 
     def __init__(self, *args, **kwargs):
         super(TestBasicSelector, self).__init__(*args, **kwargs)
@@ -18,15 +23,23 @@ class TestBasicSelector(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls._run = 0
+        cls._trace.log(f'- - - - - - S T A R T - - - - - - \n')
+        UtilsForTesting.clean_up_test_files()
         return
 
     def setUp(self) -> None:
         TestBasicSelector._run += 1
-        print(f'- - - - - - C A S E {TestBasicSelector._run} Start - - - - - -')
+        self._trace.log(f'- - - - - - C A S E {TestBasicSelector._run} Start - - - - - -')
         return
 
     def tearDown(self) -> None:
-        print(f'- - - - - - C A S E {TestBasicSelector._run} Passed - - - - - -\n')
+        self._trace.log(f'- - - - - - C A S E {TestBasicSelector._run} Passed - - - - - -\n')
+        return
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls._trace.log(f'- - - - - - E N D - - - - - - \n')
+        UtilsForTesting.clean_up_test_files()
         return
 
     @BasicUtilsForTesting.test_case
