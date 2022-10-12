@@ -12,7 +12,7 @@ producer = KafkaProducer(bootstrap_servers=[f'{hostname}:{node_port_id}'],
 
 for e in range(1000):
     data = {'number': e}
-    future = producer.send('gen-basic1', value=data)
+    future = producer.send('visualisation_agent_662556', value=data)
     try:
         record_metadata = future.get(timeout=10)
         print(record_metadata.topic)

@@ -1,10 +1,10 @@
-from time import sleep
+import time
 from typing import Dict, Union, List, Callable
 from python.id.EntityId import EntityId
 from python.exceptions.MessageStructureException import MessageStructureException
 from python.exceptions.MessageOriginException import MessageOriginException
 from kafka import KafkaConsumer, TopicPartition, KafkaProducer
-from Interface.Agent import Agent
+from interface.Agent import Agent
 
 
 class InvocationHandler:
@@ -104,6 +104,10 @@ class InvocationHandler:
               is_new_request: bool,
               response_id: str = "") -> None:
 
+        if self._producer is None:
+            print('***WARNING, nothing sent -  as producer was passed as NONE')
+            return
+
         send_type: str = "response"
         if is_new_request:
             send_type = "request"
@@ -145,11 +149,18 @@ class InvocationHandler:
         return
 
     def process_messages(self,
-                         cycle_pause_time: int = 1) -> None:
+                         cycle_pause_time: int = .25,
+                         do_every: callable = None) -> None:
         self._consumer.seek_to_end()
         for _ in range(100):
-            for message in self._consumer:
-                print(f'Agent {self._agent.name()} received message {message}')
-                self.handle_message(agent=self._agent, command=message.value)  # NOQA
-                sleep(cycle_pause_time)
+            while True:
+                messages = self._consumer.poll(timeout_ms=250, max_records=1)
+                if messages:
+                    for message in messages.values():
+                        print(f'Agent {self._agent.name()} received message {message[0]}')
+                        self.handle_message(agent=self._agent, command=message[0].value)  # NOQA
+                else:
+                    time.sleep(cycle_pause_time)
+                    if do_every:
+                        do_every()
         return

@@ -1,7 +1,6 @@
 import unittest
 import numpy as np
-import time
-from python.organism.basic.test.UtilsForTesting import UtilsForTesting
+from python.organism.basic.test.BasicUtilsForTesting import BasicUtilsForTesting
 from python.visualise.SurfacePlot import SurfacePlot
 from python.visualise.ContourPlot import ContourPlot
 from python.visualise.PreCalcPlotAnimationDataForTesting import PreCalcPointPlotAnimationDataForTesting
@@ -95,7 +94,7 @@ class TestVisualisation(unittest.TestCase):
         return lf + df
 
     # @unittest.skip  # By default, these tests are skipped as they are blocking, remove skip to see result.
-    @UtilsForTesting.test_case
+    @BasicUtilsForTesting.test_case
     def testSurfacePlotStepByStepUpdate(self):
 
         x = np.arange(0, 1.01, 0.025)
@@ -138,7 +137,7 @@ class TestVisualisation(unittest.TestCase):
         return
 
     @unittest.skip  # By default, these tests are skipped as they are blocking, remove skip to see result.
-    @UtilsForTesting.test_case
+    @BasicUtilsForTesting.test_case
     def testSurfacePlotAnimatedWithParamScenario(self):
 
         x = np.arange(0, 1.01, 0.025)
@@ -173,7 +172,7 @@ class TestVisualisation(unittest.TestCase):
         return
 
     @unittest.skip  # By default, these tests are skipped as they are blocking, remove skip to see result.
-    @UtilsForTesting.test_case
+    @BasicUtilsForTesting.test_case
     def testSurfacePlotAnimatedSinglePoint(self):
         x = np.arange(0, 1.01, 0.0125)
         y = np.arange(0, 1.01, 0.0125)
@@ -196,7 +195,7 @@ class TestVisualisation(unittest.TestCase):
         return
 
     @unittest.skip  # By default, these tests are skipped as they are blocking, remove skip to see result.
-    @UtilsForTesting.test_case
+    @BasicUtilsForTesting.test_case
     def testContourPlotAnimatedPoints(self):
         x = np.arange(0, 1.01, 0.0125)
         y = np.arange(0, 1.01, 0.0125)

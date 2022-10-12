@@ -14,7 +14,7 @@ class MainSimulator:
 
     def __init__(self):
         self._trace = ElasticTraceBootStrap(log_level=LogLevel.debug, index_name='genetic_simulator').trace
-        self._trace().debug("Main Simulator starting")
+        self._trace.log("Main Simulator starting")
         args = self._get_args(description="Run Evolutionary Simulation")
         self._verbose = args.verbose
         self._config_file = args.json

@@ -246,6 +246,14 @@ class SurfacePlot:
                                azim=self._azimuth)  # 3D Viewing position
             return
 
+    @staticmethod
+    def show_updates():
+        """
+        trigger UI to update canvas.
+        """
+        plt.pause(1)
+        return
+
     def plot(self,
              show_points: bool = True,
              show_surface_contours: bool = True,
@@ -307,7 +315,7 @@ class SurfacePlot:
         self._update_and_plot_points(show_points=self._show_points, frame_index=frame_index)
 
         self._fig.canvas.draw()
-        self._fig.canvas.flush_events()
+        self._fig.canvas.show_updates()
 
         return
 

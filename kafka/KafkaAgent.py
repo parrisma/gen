@@ -1,10 +1,9 @@
 import sys
 import os
 import pickle
-from json import loads, dumps
 from kafka import KafkaConsumer, TopicPartition, KafkaProducer
 from python.main.BaseArgParser import BaseArgParser
-from Interface.Agent import Agent
+from interface.Agent import Agent
 from util.K8Util import K8Util
 from util.InvocationHandler import InvocationHandler
 from python.id.EntityId import EntityId
