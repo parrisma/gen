@@ -2,7 +2,7 @@ import sys
 import argparse
 import os
 import pickle
-from rltrace.Trace import LogLevel
+from rltrace.Trace import Trace, LogLevel
 from rltrace.elastic.ElasticTraceBootStrap import ElasticTraceBootStrap
 from kafka import KafkaConsumer, TopicPartition, KafkaProducer
 from util.K8Util import K8Util
@@ -11,6 +11,7 @@ from interface.Agent import Agent
 from python.id.EntityId import EntityId
 from python.interface.Visualiser import Visualiser
 from python.organism.basic.BasicEnvVisualiser import BasicEnvVisualiser
+from python.visualise.VisualisationAgentProxy import VisualisationAgentProxy
 
 
 class VisualisationAgent(Agent):
@@ -43,9 +44,12 @@ class VisualisationAgent(Agent):
         self._invocation_handler: InvocationHandler = InvocationHandler(agent=self,
                                                                         consumer=self._consumer,
                                                                         producer=None,  # NOQA
-                                                                        request_topic=self._topic)
+                                                                        request_topic=self._topic,
+                                                                        trace=self._trace)
 
-        self._visualiser: Visualiser = BasicEnvVisualiser()
+        self._visualiser: Visualiser = BasicEnvVisualiser(trace=self._trace)
+
+        self._terminated: bool = False
 
         return
 
@@ -67,10 +71,6 @@ class VisualisationAgent(Agent):
         Extract and verify command line arguments
         """
         parser = argparse.ArgumentParser(description='MatPlotLib stand alone process for graph rendering')
-        parser.add_argument("-t", "--topic",
-                            help="Kafka topic name to listen for commands on",
-                            default=f'visualisation_agent_{os.getpid()}',
-                            type=str)
         parser.add_argument("-l", "--log_index",
                             help="The name of the elastic DB index to log to",
                             default='visualisation_index',
@@ -83,22 +83,7 @@ class VisualisationAgent(Agent):
                             help="The password of the elastic DB logging user",
                             default='changeme',
                             type=str)
-        parser.add_argument("-s", "--kafka_kubernetes_service_name",
-                            help="The name of the Kubernetes service",
-                            default='kafka-service',
-                            type=str)
-        parser.add_argument("-n", "--kafka_kubernetes_namespace",
-                            help="The kubernetes namespace where all kafka elements exist",
-                            default='kafka',
-                            type=str)
-        parser.add_argument("-p", "--kafka_external_port",
-                            help="The port id kafka listens on for external connects",
-                            default=19093,
-                            type=int)
-        parser.add_argument("-g", "--kafka_group",
-                            help="The Kafka consumer group for the Agents to operate as part of",
-                            default=f'VisualisationGroup',
-                            type=str)
+        VisualisationAgentProxy.add_args(parser)
         return parser.parse_args()
 
     def _get_kafka_broker(self) -> str:
@@ -135,22 +120,31 @@ class VisualisationAgent(Agent):
     def initialise(self, **kwargs) -> None:
         """
         """
-        self._trace.log('Request to initialise plot received')
-        self._visualiser.initialise(**kwargs)
+        if self._terminated:
+            self._trace.log('Cannot initialise as session as already been terminated', level=Trace.LogLevel.warn)
+        else:
+            self._trace.log('Request to initialise plot received')
+            self._visualiser.initialise(**kwargs)
         return
 
     def update(self, **kwargs) -> None:
         """
         """
-        self._trace.log('Request to update plot received')
-        self._visualiser.update(**kwargs)
+        if self._terminated:
+            self._trace.log('Cannot update as session as already been terminated', level=Trace.LogLevel.warn)
+        else:
+            self._trace.log('Request to update plot received')
+            self._visualiser.update(**kwargs)
         return
 
     def terminate(self, **kwargs) -> None:
         """
         """
-        self._trace.log('Request to terminate plot received')
-        self._visualiser.terminate(**kwargs)
+        if self._terminated:
+            self._trace.log('Terminate already requested, this request is ignored', level=Trace.LogLevel.warn)
+        else:
+            self._trace.log('Request to terminate plot received')
+            self._visualiser.terminate(**kwargs)
         return
 
     def run(self) -> None:

@@ -1,3 +1,4 @@
+from typing import Any
 from abc import ABC, abstractmethod
 
 
@@ -5,7 +6,7 @@ class Visualiser(ABC):
 
     @abstractmethod
     def initialise(self,
-                   **kwargs) -> None:
+                   **kwargs) -> Any:
         """
         Initialise the view
         """
@@ -13,7 +14,7 @@ class Visualiser(ABC):
 
     @abstractmethod
     def update(self,
-               **kwargs) -> None:
+               **kwargs) -> Any:
         """
         Update the view
         """
@@ -21,7 +22,7 @@ class Visualiser(ABC):
 
     @abstractmethod
     def terminate(self,
-                  **kwargs) -> None:
+                  **kwargs) -> Any:
         """
         Tear down the view and release any resources
         """
@@ -29,7 +30,7 @@ class Visualiser(ABC):
 
     @abstractmethod
     def show(self,
-             **kwargs) -> None:
+             **kwargs) -> Any:
         """
         Show the current plot.
         """

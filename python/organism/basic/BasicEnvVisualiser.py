@@ -1,17 +1,22 @@
 import numpy as np
-import threading
+import sys
 from typing import Tuple
 from python.interface.Visualiser import Visualiser
+import Trace
 from python.organism.basic.genes.LightToleranceGene import LightToleranceGene
 from python.organism.basic.genes.DroughtToleranceGene import DroughtToleranceGene
 from python.visualise.ParamScenario import ParamScenario
 from python.visualise.SurfacePlot import SurfacePlot
 from python.organism.basic.BasicOrganism import BasicOrganism
+from python.organism.basic.BasicEnvVisualiserProxy import BasicEnvVisualiserProxy
+from python.organism.basic.BasicEnvDynamicPointAnimation import BasicEnvDynamicPointAnimation
 
 
 class BasicEnvVisualiser(Visualiser):
 
-    def __init__(self):
+    def __init__(self,
+                 trace: Trace):
+        self._trace: Trace = trace
         self._num_organism: int = None  # NOQA
         self._surface_plot: SurfacePlot = None  # NOQA
         self._env_light_level: float = None  # NOQA
@@ -36,9 +41,12 @@ class BasicEnvVisualiser(Visualiser):
         Initialise the view
         """
 
-        self._env_light_level: float = kwargs['env_light_level']
-        self._env_drought_level: float = kwargs['env_light_level']
-        self._num_organism: int = kwargs['num_organism']
+        self._env_light_level: float = kwargs.get(BasicEnvVisualiserProxy.ENV_LIGHT_LEVEL, None)
+        self._env_drought_level: float = kwargs.get(BasicEnvVisualiserProxy.ENV_DROUGHT_LEVEL, None)
+        self._num_organism: int = kwargs.get(BasicEnvVisualiserProxy.NUM_ORGANISMS, None)
+
+        if any([self._env_light_level, self._env_drought_level, self._num_organism]) is None:
+            raise RuntimeError(f'Cannot initialise {self.__class__.__name__} missing key parameter')
 
         x = np.arange(0, 1.01, 0.025)  # Light level as % in range 0.0 to 1.0
         y = np.arange(0, 1.01, 0.025)  # Drought level as % in range 0.0 to 1.0
@@ -77,14 +85,23 @@ class BasicEnvVisualiser(Visualiser):
         """
         Update the view
         """
-        pass
+        idx: int = kwargs.get(BasicEnvVisualiserProxy.FRAME_INDEX, None)
+        frame_data = kwargs.get(BasicEnvVisualiserProxy.FRAME_DATA, None)
+        if idx is not None and frame_data is not None:
+            self._surface_plot.animate_step(frame_index=idx,
+                                            plot_animation_data=BasicEnvDynamicPointAnimation(frame_data),
+                                            points_only=True)
+        else:
+            self._trace.log(f'Malformed update request missing, update skipped', Trace.LogLevel.warn)
+        return
 
     def terminate(self,
                   **kwargs) -> None:
         """
         Tear down the view and release any resources
         """
-        pass
+        self._surface_plot.close()
+        sys.exit(0)
 
     def show(self,
              **kwargs) -> None:

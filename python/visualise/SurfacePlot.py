@@ -106,6 +106,8 @@ class SurfacePlot:
 
         self._show_thread: threading.Thread = None
 
+        self._closed: bool = False
+
         return
 
     def _init_plot(self) -> None:
@@ -246,12 +248,23 @@ class SurfacePlot:
                                azim=self._azimuth)  # 3D Viewing position
             return
 
-    @staticmethod
-    def show_updates():
+    def show_updates(self,
+                     interval: float = 0.1):
         """
-        trigger UI to update canvas.
+        trigger UI to update canvas, without giving UI the focus.
         """
-        plt.pause(1)
+        if self._closed:
+            raise RuntimeError("Plot has been closed")
+
+        manager = plt._pylab_helpers.Gcf.get_active()
+        if manager is not None:
+            canvas = manager.canvas
+            if canvas.figure.stale:
+                canvas.draw_idle()
+                # plt.show(block=False)
+            canvas.start_event_loop(interval)
+        else:
+            time.sleep(interval)
         return
 
     def plot(self,
@@ -264,6 +277,9 @@ class SurfacePlot:
         :param show_surface_contours: Set True to show the contour lines superimposed on the surface plot
         :param show_2d_contour:  Set True to show the 2d contour plot directly under the surface
         """
+        if self._closed:
+            raise RuntimeError("Plot has been closed")
+
         self._init_plot()
 
         self._show_points = show_points
@@ -283,6 +299,9 @@ class SurfacePlot:
         :param frame_index: The number of the frame animation & index into x,y animation data points
         :return:
         """
+        if self._closed:
+            raise RuntimeError("Plot has been closed")
+
         self._update_z(frame_index=frame_index)
         self._update_and_plot_surface(frame_index=frame_index)
         self._updated_and_plot_contours(frame_index=frame_index)
@@ -302,6 +321,9 @@ class SurfacePlot:
         :param points_only: If True just update the points on the plot.
         :param plot_pause_time: The time in seconds to pause the frame for
         """
+        if self._closed:
+            raise RuntimeError("Plot has been closed")
+
         plt.pause(plot_pause_time)
         if not points_only:
             self._update_z(frame_index=frame_index)
@@ -315,7 +337,7 @@ class SurfacePlot:
         self._update_and_plot_points(show_points=self._show_points, frame_index=frame_index)
 
         self._fig.canvas.draw()
-        self._fig.canvas.show_updates()
+        self.show_updates(interval=0.001)
 
         return
 
@@ -334,6 +356,9 @@ class SurfacePlot:
         :param rotate_step: The numbers of degrees to rotate the plot by for each animation update
         :return:
         """
+        if self._closed:
+            raise RuntimeError("Plot has been closed")
+
         self._plot_animation_data = plot_animation_data
         self._num_animation_points = plot_animation_data.num_frames()
         self._rotate_plot = rotate_plot
@@ -346,6 +371,14 @@ class SurfacePlot:
         plt.draw()
         if show_time > 0:
             plt.pause(show_time)
+        return
+
+    def close(self) -> None:
+        """
+        Terminate all plots
+        """
+        self._closed = True
+        plt.close('all')
         return
 
     def __call__(self, i, *args, **kwargs):

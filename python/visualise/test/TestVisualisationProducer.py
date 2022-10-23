@@ -1,49 +1,57 @@
-import os
 import sys
-from typing import Dict
-import pickle
-from kafka import KafkaProducer
-from util.K8Util import K8Util
-from python.id.EntityId import EntityId
+import time
+import numpy as np
+import argparse
+from rltrace.Trace import Trace
+from python.organism.basic.BasicEnvVisualiserProxy import BasicEnvVisualiserProxy
+from python.visualise.VisualisationAgentProxy import VisualisationAgentProxy
 
 
 class TestVisualisationProducer:
 
     def __init__(self):
-        self._hostname = os.getenv('COMPUTERNAME')
-        self._node_port_id = K8Util.get_node_port_number()
-        self._producer = KafkaProducer(bootstrap_servers=[f'{self._hostname}:{self._node_port_id}'],
-                                       value_serializer=lambda x:
-                                       pickle.dumps(x))
-        self._method_name: str = 'method_name'
-        self._method_args: str = 'method_args'
-        self._is_new_request: str = 'is_new_request'
-        self._invocation_id: str = 'invocation_id'
-        self._env_light_level_key: str = 'env_light_level'
-        self._env_drought_level_key: str = 'env_light_level'
-        self._num_organism_key: str = 'num_organism'
-
         self._hours_of_light_per_day: float = 12
         self._hours_since_last_rain: float = 2
-        self._env_light_level: float = self._hours_of_light_per_day / 24.0
-        self._env_drought_level: float = self._hours_since_last_rain / 24.0
+        self._basic_env_visualiser_proxy = BasicEnvVisualiserProxy(hours_of_light_per_day=12,
+                                                                   hours_since_last_rain=2,
+                                                                   num_organisms=10)
+        self._trace = Trace()
+        parser = argparse.ArgumentParser(description='Test Visualisation')
+        VisualisationAgentProxy.add_args(parser)
+        args = parser.parse_args()
+        self._visualisation_agent_proxy = \
+            VisualisationAgentProxy(trace=self._trace,
+                                    args=args,
+                                    basic_visualiser_env_proxy=self._basic_env_visualiser_proxy)
+        return
 
     def send_updates(self) -> None:
-        initalise_request: Dict = {self._method_name: 'initialise',
-                                   self._invocation_id: EntityId().as_str(),
-                                   self._is_new_request: str(True),
-                                   self._method_args: {self._env_light_level_key: self._env_light_level,
-                                                       self._env_drought_level_key: self._hours_since_last_rain,
-                                                       self._num_organism_key: 10}}
-        future = self._producer.send('visualisation_agent_744488', value=initalise_request)
-        try:
-            record_metadata = future.get(timeout=10)
-            print(record_metadata.topic)
-            print(record_metadata.partition)
-            print(record_metadata.offset)
-        except Exception as exp:
-            print(f'{exp}')
-        self._producer.flush()
+        topic: str = 'visualisation_agent_e5db0744374a44f69cde62cb32ea05e0'
+        self._visualisation_agent_proxy.initialise()
+
+        r = np.random.rand(30)
+        for i in range(10):
+            self._visualisation_agent_proxy.update(frame_index=i,
+                                                   frame_data=[
+                                                       (r[0], r[1], r[2]),
+                                                       (r[3], r[4], r[5]),
+                                                       (r[6], r[7], r[8]),
+                                                       (r[9], r[10], r[11]),
+                                                       (r[12], r[13], r[14]),
+                                                       (r[15], r[16], r[17]),
+                                                       (r[18], r[19], r[20]),
+                                                       (r[21], r[22], r[23]),
+                                                       (r[24], r[25], r[26]),
+                                                       (r[27], r[28],
+                                                        r[29])])
+            ru = (np.random.rand(30) - 0.5) * .05
+            r = r + ru
+            r = np.minimum(np.ones(30), r)
+            r = np.maximum(np.zeros(30), r)
+            time.sleep(.25)
+
+        self._visualisation_agent_proxy.terminate()
+        return
 
 
 if __name__ == "__main__":
