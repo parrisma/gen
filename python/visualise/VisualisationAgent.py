@@ -4,7 +4,7 @@ import os
 import pickle
 from rltrace.Trace import Trace, LogLevel
 from rltrace.elastic.ElasticTraceBootStrap import ElasticTraceBootStrap
-from kafka import KafkaConsumer, TopicPartition, KafkaProducer
+from kafka import KafkaConsumer, TopicPartition
 from util.K8Util import K8Util
 from util.InvocationHandler import InvocationHandler
 from interface.Agent import Agent
@@ -26,11 +26,11 @@ class VisualisationAgent(Agent):
         self._log_index = args.log_index
         self._elastic_db_username = args.elastic_db_username
         self._elastic_db_password = args.elastic_db_password
-        self._trace = ElasticTraceBootStrap(log_level=LogLevel.debug,
-                                            index_name=self._log_index,
-                                            elastic_user=self._elastic_db_username,
-                                            elastic_password=self._elastic_db_password,
-                                            ).trace
+        self._trace: Trace = ElasticTraceBootStrap(log_level=LogLevel.debug,
+                                                   index_name=self._log_index,
+                                                   elastic_user=self._elastic_db_username,
+                                                   elastic_password=self._elastic_db_password,
+                                                   ).trace
 
         self._topic = args.topic
         self._kafka_kubernetes_service_name: str = args.kafka_kubernetes_service_name
@@ -121,7 +121,7 @@ class VisualisationAgent(Agent):
         """
         """
         if self._terminated:
-            self._trace.log('Cannot initialise as session as already been terminated', level=Trace.LogLevel.warn)
+            self._trace.log('Cannot initialise as session as already been terminated', level=LogLevel.warn)
         else:
             self._trace.log('Request to initialise plot received')
             self._visualiser.initialise(**kwargs)
@@ -131,7 +131,7 @@ class VisualisationAgent(Agent):
         """
         """
         if self._terminated:
-            self._trace.log('Cannot update as session as already been terminated', level=Trace.LogLevel.warn)
+            self._trace.log('Cannot update as session as already been terminated', level=LogLevel.warn)
         else:
             self._trace.log('Request to update plot received')
             self._visualiser.update(**kwargs)
@@ -141,7 +141,7 @@ class VisualisationAgent(Agent):
         """
         """
         if self._terminated:
-            self._trace.log('Terminate already requested, this request is ignored', level=Trace.LogLevel.warn)
+            self._trace.log('Terminate already requested, this request is ignored', level=LogLevel.warn)
         else:
             self._trace.log('Request to terminate plot received')
             self._visualiser.terminate(**kwargs)

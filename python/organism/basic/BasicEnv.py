@@ -8,34 +8,28 @@ from python.base.Env import Env
 from python.base.Selector import Selector
 from python.base.OrganismFactory import OrganismFactory
 from python.base.Organism import Organism
-from python.base.Genome import Genome
 from python.base.Metrics import Metrics
 from python.organism.basic.BasicEnvironmentState import BasicEnvironmentState
 from python.organism.basic.BasicSelector import BasicSelector
-from python.organism.basic.BasicOrganism import BasicOrganism
 from python.organism.basic.DynamicPointAnimation import DynamicPointAnimation
-from python.organism.basic.genes.LightToleranceGene import LightToleranceGene
-from python.organism.basic.genes.DroughtToleranceGene import DroughtToleranceGene
 from python.exceptions.PopulationExtinct import PopulationExtinct
-from python.visualise.ParamScenario import ParamScenario
-from python.visualise.SurfacePlot import SurfacePlot
 from rltrace.Trace import Trace
+from python.visualise.VisualisationAgentProxy import VisualisationAgentProxy
+from python.organism.basic.BasicEnvVisualiserProxy import BasicEnvVisualiserProxy
 
 
 class BasicEnv(Env):
 
     def __init__(self,
                  trace: Trace,
-                 hours_of_light_per_day: float,
-                 hours_since_last_rain: float,
+                 args,
                  selector: Selector,
                  organism_factory: OrganismFactory,
                  conf: Conf):
         """
         Simple environment constructor
         :param trace: The trace logger
-        :param hours_of_light_per_day: The hours of light to set for the simulation
-        :param hours_since_last_rain: The hours since last rain to set for the simulation
+        :param args: The parsed command line arguments (argparse)
         :param selector:  The selection (object) strategy to use for new generation selection
         :param organism_factory: The factory that can create new organisms
         :param conf: The JSON config file.
@@ -48,13 +42,21 @@ class BasicEnv(Env):
         self._mutation_step: float = conf.config["environment"]["mutation_step"]
         self._selection_probability: float = conf.config["environment"]["selection"]["primary_probability"]
         self._selection_fitness_weight: float = conf.config["environment"]["selection"]["fitness_weight"]
+        self._hours_of_light_per_day: float = conf.config["environment"]["scenario"]["hours_of_light_per_day"]
+        self._hours_since_last_rain: float = conf.config["environment"]["scenario"]["hours_since_last_rain"]
         self._population: Dict[str, Organism] = {}
         self._metrics: Dict[str, Metrics] = {}
         self._selector: Selector = selector
         self._organism_factory: OrganismFactory = organism_factory
-        self._env_light_level: float = hours_of_light_per_day / 24.0
-        self._env_drought_level: float = hours_since_last_rain / 24.0
-        self._surface_plot = None
+        self._env_light_level: float = self._hours_of_light_per_day / 24.0
+        self._env_drought_level: float = self._hours_since_last_rain / 24.0
+        self._basic_env_visualiser_proxy = BasicEnvVisualiserProxy(hours_of_light_per_day=self._hours_of_light_per_day,
+                                                                   hours_since_last_rain=self._hours_since_last_rain,
+                                                                   num_organisms=self._num_organisms)
+        self._visualisation_agent_proxy = \
+            VisualisationAgentProxy(trace=self._trace,
+                                    args=args,
+                                    basic_visualiser_env_proxy=self._basic_env_visualiser_proxy)
         return
 
     @classmethod
@@ -69,8 +71,8 @@ class BasicEnv(Env):
         """
         return np.maximum(0, np.minimum(np.absolute(v), lim)) / lim
 
-    def __gene_space(self,
-                     rng: Tuple[float, float],
+    @staticmethod
+    def __gene_space(rng: Tuple[float, float],
                      env_level: float) -> float:
         """
         The given environment level expressed as a gene value.
@@ -80,40 +82,6 @@ class BasicEnv(Env):
         mn, mx = rng
         return (env_level * (mx - mn)) - mx
 
-    def init_visualisation(self):
-
-        x = np.arange(0, 1.01, 0.025)  # Light level as % in range 0.0 to 1.0
-        y = np.arange(0, 1.01, 0.025)  # Drought level as % in range 0.0 to 1.0
-
-        # Single value scenarios as we fix the surface to show the optimal fitness function for
-        # the configured light/drought levels. The organism will have the highest fitness when its
-        # genes express a suitability that matches exactly the prevailing light/drought level.
-
-        ell = self.__gene_space(rng=LightToleranceGene.value_range(), env_level=self._env_light_level)
-        light_tol_scenario = ParamScenario(scenario_name="Light Tol",
-                                           param_values_by_index=np.array(ell).reshape(1))
-
-        dll = self.__gene_space(rng=DroughtToleranceGene.value_range(), env_level=self._env_drought_level)
-        drought_tol_scenario = ParamScenario(scenario_name="Drought Tol",
-                                             param_values_by_index=np.array(dll).reshape(1))
-
-        self._surface_plot = SurfacePlot(title="Environmental Fitness",
-                                         x_label="% of day in drought",
-                                         y_label="% of day in light",
-                                         z_label="Fitness",
-                                         x=x,
-                                         y=y,
-                                         func=BasicOrganism.hybrid_fitness_func,
-                                         func_params={
-                                             BasicOrganism.LIGHT_TOLERANCE: light_tol_scenario,
-                                             BasicOrganism.DROUGHT_TOLERANCE: drought_tol_scenario},
-                                         points=[(0.0, 0.0, 0.0)] * self._num_organisms,
-                                         x_ticks=10,
-                                         y_ticks=10,
-                                         z_ticks=10)
-        self._surface_plot.plot()
-        return
-
     def create_generation_zero(self):
         """
         Create the initial generation zero population.
@@ -122,7 +90,7 @@ class BasicEnv(Env):
         for _ in range(self._num_organisms):
             o = self._organism_factory.new()
             self._population[o.get_id()] = o
-            self._trace().debug(f'{o.get_id()} Organism is born')
+            self._trace.log(f'{o.get_id()} Organism is born')
 
         return
 
@@ -137,20 +105,40 @@ class BasicEnv(Env):
         """
         Call the run method on each member of the population
         """
+        from python.organism.basic.BasicOrganism import BasicOrganism
+
+        class D:
+            def __init__(self, basic_organism: BasicOrganism):
+                self._id = basic_organism.get_id()
+                return
+
+            def exec(self, *args, **kwargs):
+                print(f'Hello world {self._id}')
+                return self._id
+
+            def get(self):
+                return self._id
+
         self._metrics.clear()
+        try:
+            with concurrent.futures.ProcessPoolExecutor(max_workers=5) as executor:
+                # All Organisms must be pickalble before mutli-processing. This is because they are sent to the
+                # spawned processes and get_state() also passes a list of organisms
+                for o in self._population.values():
+                    o.pickle_state_on()
+                results = [executor.submit(partial(o.run, self.get_state())) for o in self._population.values()]  # NOQA
+                for f in concurrent.futures.as_completed(results):
+                    o: Organism = f.result()
+                    self._trace.log(f'{o.get_id()} Organism has run')
+                    if not o.is_alive():
+                        self._population.pop(o.get_id())
+                        self._trace.log(f'{o.get_id()} Organism has died & been removed from the population')
+                    else:
+                        o.pickle_state_off()
+                        self._population[o.get_id()] = o
+        except Exception as e:
+            print(e)
 
-        with concurrent.futures.ProcessPoolExecutor() as executor:
-            results = [executor.submit(partial(organism.run, self.get_state())) for organism in
-                       self._population.values()]
-
-            for f in concurrent.futures.as_completed(results):
-                o: Organism = f.result()
-                self._trace().debug(f'{o.get_id()} Organism has run')
-                if not o.is_alive():
-                    self._population.pop(o.get_id())
-                    self._trace().debug(f'{o.get_id()} Organism has died & been removed from the population')
-                else:
-                    self._population[o.get_id()] = o
         return
 
     def rank_and_select_survivors(self) -> None:
@@ -162,7 +150,7 @@ class BasicEnv(Env):
                                                 fitness_weight=self._selection_fitness_weight)
         survivors = selector.select_survivors(list(self._population.values()))  # NOQA
         self._population = dict([(s.get_id(), s) for s in survivors])
-        self._trace().debug(f'{len(self._population)} survivors remain after rank and selection')
+        self._trace.log(f'{len(self._population)} survivors remain after rank and selection')
         return
 
     def create_next_generation(self) -> None:
@@ -177,14 +165,15 @@ class BasicEnv(Env):
 
         while (len(self._population) + len(next_generation)) < self._num_organisms:
             # Select parents
-            parents: List[Organism] = np.random.choice(a=np.array(list(self._population.values())),
-                                                       size=2,
-                                                       replace=False)
+            # parents: List[Organism] = np.random.choice(a=np.array(list(self._population.values())),
+            #                                           size=2,
+            #                                           replace=False)
 
             # Create new organism Genome
-            genome: Genome = parents[0].crossover(organism=parents[1], mix_rate=self._crossover_rate)
-            new_organism: Organism = self._organism_factory.new(genome=genome)
-            new_organism.mutate(step_size=self._mutation_step)
+            # genome: Genome = parents[0].crossover(organism=parents[1], mix_rate=self._crossover_rate)
+            # new_organism: Organism = self._organism_factory.new(genome=genome)
+            # new_organism.mutate(step_size=self._mutation_step)
+            new_organism: Organism = self._organism_factory.new()
             next_generation.append(new_organism)
 
         for organism in next_generation:
@@ -197,7 +186,9 @@ class BasicEnv(Env):
         Run the evolutionary simulation until termination condition are met
         :return: False if the evolutionary simulation has met termination conditions.
         """
-        self.init_visualisation()
+        self._visualisation_agent_proxy.initialise(num_organism=self._num_organisms,
+                                                   env_light_level=self._env_light_level,
+                                                   env_drought_level=self._env_drought_level)
         self.create_generation_zero()
         dpa = DynamicPointAnimation(env_state=self.get_state)
 
@@ -205,15 +196,14 @@ class BasicEnv(Env):
         while not self.termination_conditions_met():
             self.run_population()
 
-            self._surface_plot.animate_step(frame_index=idx,
-                                            plot_animation_data=dpa,
-                                            points_only=True)
+            self._visualisation_agent_proxy.update(frame_index=idx,
+                                                   frame_data=dpa.extract_points().tolist())
             fitness = [o.fitness() for o in self._population.values()]
-            self._trace().debug(f'{fitness}')
+            self._trace.log(f'{fitness}')
             p_min = np.min(fitness)
             p_max = np.max(fitness)
             p_avg = np.average(fitness)
-            self._trace().debug(
+            self._trace.log(
                 f'min {p_min:0.5f},  max {p_max:0.5f},  average {p_avg:0.5f}, num {len(self._population)}')
 
             self.rank_and_select_survivors()

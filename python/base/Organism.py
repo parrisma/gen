@@ -101,6 +101,20 @@ class Organism(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def pickle_state_on(self) -> None:
+        """
+        Ensure the Organism and all of its members are in a pickleable state
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def pickle_state_off(self) -> None:
+        """
+        Release the condition that the Organism and members need to be pickleable.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def __eq__(self, other):
         """
         Test equality between BasicOrganism and a given object

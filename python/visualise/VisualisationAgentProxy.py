@@ -84,6 +84,8 @@ class VisualisationAgentProxy(Agent):
                **kwargs) -> None:
         """
         Send update request to Visualisation service
+
+
         """
         frame_index: int = kwargs.get(BasicEnvVisualiserProxy.FRAME_INDEX, None)
         frame_data: List[Tuple[float, float, float]] = kwargs.get(BasicEnvVisualiserProxy.FRAME_DATA, None)

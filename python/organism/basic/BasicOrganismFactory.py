@@ -33,6 +33,7 @@ class BasicOrganismFactory(OrganismFactory):
                                          BasicGenome([BasicChromosome(drought_gene=DroughtToleranceGene(),
                                                                       light_gene=LightToleranceGene())]))
         else:
-            new_organism = BasicOrganism(genome=genome)  # NOQA
+            new_organism = BasicOrganism(session_uuid=self._trace.session_uuid,
+                                         genome=genome)  # NOQA
 
         return new_organism

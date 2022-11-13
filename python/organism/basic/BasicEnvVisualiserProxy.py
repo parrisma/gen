@@ -8,7 +8,7 @@ class BasicEnvVisualiserProxy(Visualiser):
     FRAME_INDEX: str = 'frame_index'
     FRAME_DATA: str = 'frame_data'
     ENV_LIGHT_LEVEL: str = 'env_light_level'
-    ENV_DROUGHT_LEVEL: str = 'env_light_level'
+    ENV_DROUGHT_LEVEL: str = 'env_drought_level'
     NUM_ORGANISMS: str = 'num_organism'
     METHOD_NAME: str = 'method_name'
     METHOD_ARGS: str = 'method_args'

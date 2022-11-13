@@ -13,6 +13,8 @@ from python.organism.basic.BasicChromosome import BasicChromosome
 from python.organism.basic.BasicGenome import BasicGenome
 from python.organism.basic.genes.LightToleranceGene import LightToleranceGene
 from python.organism.basic.genes.DroughtToleranceGene import DroughtToleranceGene
+from python.organism.basic.SimpleTrace import SimpleTrace
+from rltrace.Trace import Trace
 from rltrace.Trace import LogLevel
 from rltrace.elastic.ElasticTraceBootStrap import ElasticTraceBootStrap
 
@@ -37,15 +39,39 @@ class BasicOrganism(Organism):
                  session_uuid: str,
                  genome: BasicGenome):
         self._id: OrganismId = OrganismId()
-        self._trace = ElasticTraceBootStrap(log_level=LogLevel.debug,
-                                            session_uuid=session_uuid,
-                                            index_name='genetic_simulator').trace
+        self._session_uuid = session_uuid
+        self._trace = None
+        self._init_trace()
         self._genome: BasicGenome = genome
         self._metrics: BasicMetrics = BasicMetrics(alive=True, fitness=Metrics.LEAST_FIT, diversity=0.0)
         # Express Chromosomes
         chromosome: BasicChromosome = self._genome.get_chromosome(BasicChromosome)  # NOQA
         self._light_tolerance: Gene = chromosome.get_gene(LightToleranceGene)
         self._drought_tolerance: Gene = chromosome.get_gene(DroughtToleranceGene)
+        return
+
+    def _init_trace(self) -> None:
+        """
+        Establish trace logging
+        """
+        if self._trace is None or not isinstance(self._trace, Trace):
+            self._trace = ElasticTraceBootStrap(log_level=LogLevel.debug,
+                                                session_uuid=self._session_uuid,
+                                                index_name='genetic_simulator').trace
+        return
+
+    def pickle_state_on(self) -> None:
+        """
+        Ensure the Organism and all of its members are in a pickleable state
+        """
+        self._trace = SimpleTrace(session_uuid=self._session_uuid)
+        return
+
+    def pickle_state_off(self) -> None:
+        """
+        Release the condition that the Organism and members need to be pickleable.
+        """
+        self._init_trace()
         return
 
     @classmethod

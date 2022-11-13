@@ -1,12 +1,16 @@
 {
   "environment": {
-    "num_generation_zero_organisms": 20,
+    "num_generation_zero_organisms": 10,
     "crossover_rate": 0.5,
     "mutation_rate": 0.1,
     "mutation_step": 0.01,
     "selection": {
       "primary_probability": 0.1,
       "fitness_weight": 0.55
+    },
+    "scenario": {
+      "hours_of_light_per_day": 12,
+      "hours_since_last_rain": 2
     }
   }
 }

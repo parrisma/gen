@@ -6,6 +6,7 @@ from python.organism.basic.BasicOrganismFactory import BasicOrganismFactory
 from python.organism.basic.BasicSelector import BasicSelector
 from rltrace.Trace import LogLevel
 from rltrace.elastic.ElasticTraceBootStrap import ElasticTraceBootStrap
+from python.visualise.VisualisationAgentProxy import VisualisationAgentProxy
 
 
 class MainSimulator:
@@ -15,9 +16,9 @@ class MainSimulator:
     def __init__(self):
         self._trace = ElasticTraceBootStrap(log_level=LogLevel.debug, index_name='genetic_simulator').trace
         self._trace.log("Main Simulator starting")
-        args = self._get_args(description="Run Evolutionary Simulation")
-        self._verbose = args.verbose
-        self._config_file = args.json
+        self._args = self._get_args(description="Run Evolutionary Simulation")
+        self._verbose = self._args.verbose
+        self._config_file = self._args.json
         return
 
     @staticmethod
@@ -27,6 +28,7 @@ class MainSimulator:
         :param description: The description of the application
         """
         parser = BaseArgParser(description).parser()
+        VisualisationAgentProxy.add_args(parser=parser)
         return parser.parse_args()
 
     def run(self) -> None:
@@ -34,8 +36,7 @@ class MainSimulator:
         Boostrap the environment and run the evolutionary simulation.
         """
         BasicEnv(trace=self._trace,
-                 hours_of_light_per_day=12,
-                 hours_since_last_rain=2,
+                 args=self._args,
                  conf=Conf(self._config_file),
                  organism_factory=BasicOrganismFactory(self._trace),
                  selector=BasicSelector()).run()
