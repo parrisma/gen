@@ -35,9 +35,9 @@ class BasicEnvVisualiserProxy(Visualiser):
         return {self.METHOD_NAME: 'initialise',
                 self.INVOCATION_ID: EntityId().as_str(),
                 self.IS_NEW_REQUEST: str(True),
-                self.METHOD_ARGS: {self.ENV_LIGHT_LEVEL: self._env_light_level,
-                                   self.ENV_DROUGHT_LEVEL: self._hours_since_last_rain,
-                                   self.NUM_ORGANISMS: 10}}
+                self.METHOD_ARGS: {self.ENV_LIGHT_LEVEL: kwargs.get(self.ENV_LIGHT_LEVEL, self._env_light_level),
+                                   self.ENV_DROUGHT_LEVEL: kwargs.get(self.ENV_DROUGHT_LEVEL, self._env_drought_level),
+                                   self.NUM_ORGANISMS: kwargs.get(self.NUM_ORGANISMS, self._num_organisms)}}
 
     def update(self,
                frame_index: int,

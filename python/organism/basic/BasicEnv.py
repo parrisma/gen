@@ -8,6 +8,7 @@ from python.base.Env import Env
 from python.base.Selector import Selector
 from python.base.OrganismFactory import OrganismFactory
 from python.base.Organism import Organism
+from python.base.Genome import Genome
 from python.base.Metrics import Metrics
 from python.organism.basic.BasicEnvironmentState import BasicEnvironmentState
 from python.organism.basic.BasicSelector import BasicSelector
@@ -105,23 +106,9 @@ class BasicEnv(Env):
         """
         Call the run method on each member of the population
         """
-        from python.organism.basic.BasicOrganism import BasicOrganism
-
-        class D:
-            def __init__(self, basic_organism: BasicOrganism):
-                self._id = basic_organism.get_id()
-                return
-
-            def exec(self, *args, **kwargs):
-                print(f'Hello world {self._id}')
-                return self._id
-
-            def get(self):
-                return self._id
-
         self._metrics.clear()
         try:
-            with concurrent.futures.ProcessPoolExecutor(max_workers=5) as executor:
+            with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
                 # All Organisms must be pickalble before mutli-processing. This is because they are sent to the
                 # spawned processes and get_state() also passes a list of organisms
                 for o in self._population.values():
@@ -165,15 +152,14 @@ class BasicEnv(Env):
 
         while (len(self._population) + len(next_generation)) < self._num_organisms:
             # Select parents
-            # parents: List[Organism] = np.random.choice(a=np.array(list(self._population.values())),
-            #                                           size=2,
-            #                                           replace=False)
+            parents: List[Organism] = np.random.choice(a=np.array(list(self._population.values())),
+                                                       size=2,
+                                                       replace=False)
 
             # Create new organism Genome
-            # genome: Genome = parents[0].crossover(organism=parents[1], mix_rate=self._crossover_rate)
-            # new_organism: Organism = self._organism_factory.new(genome=genome)
-            # new_organism.mutate(step_size=self._mutation_step)
-            new_organism: Organism = self._organism_factory.new()
+            genome: Genome = parents[0].crossover(organism=parents[1], mix_rate=self._crossover_rate)
+            new_organism: Organism = self._organism_factory.new(genome=genome)
+            new_organism.mutate(step_size=self._mutation_step)
             next_generation.append(new_organism)
 
         for organism in next_generation:
@@ -198,13 +184,15 @@ class BasicEnv(Env):
 
             self._visualisation_agent_proxy.update(frame_index=idx,
                                                    frame_data=dpa.extract_points().tolist())
-            fitness = [o.fitness() for o in self._population.values()]
-            self._trace.log(f'{fitness}')
+            fitness = []
+            for o in self._population.values():
+                fitness.append(o.metrics().get_fitness())
             p_min = np.min(fitness)
             p_max = np.max(fitness)
             p_avg = np.average(fitness)
             self._trace.log(
-                f'min {p_min:0.5f},  max {p_max:0.5f},  average {p_avg:0.5f}, num {len(self._population)}')
+                f'min {p_min:+0.6f},  max {p_max:+0.6f},  average {p_avg:+0.6f}, num {len(self._population)}')
+            self._trace.log(f'{fitness}')
 
             self.rank_and_select_survivors()
             self.create_next_generation()

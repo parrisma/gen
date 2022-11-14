@@ -38,6 +38,7 @@ class BasicOrganism(Organism):
     def __init__(self,
                  session_uuid: str,
                  genome: BasicGenome):
+        self._generation: int = 0
         self._id: OrganismId = OrganismId()
         self._session_uuid = session_uuid
         self._trace = None
@@ -73,6 +74,13 @@ class BasicOrganism(Organism):
         """
         self._init_trace()
         return
+
+    def generation(self) -> int:
+        """
+        Return the number of generations old for this organism
+        :return: The number of generations the organism has lived for.
+        """
+        return self._generation
 
     @classmethod
     def light_fitness_func(cls,
@@ -139,7 +147,8 @@ class BasicOrganism(Organism):
         :param environment_state: The current state of the environment in which the organism is living.
         :return: A reference to this (self) Organism after it has executed a life cycle.
         """
-        self._trace.log(f'Organism {self._id} run')
+        self._generation = self._generation + 1
+        self._trace.log(f'Organism {self._id} run {self._generation}')
         bm: Dict[BasicEnvironmentAttributes, object] = environment_state.get_attributes()  # NOQA
 
         ave_light = float(bm.get(BasicEnvironmentAttributes.AVG_HOURS_OF_LIGHT_PER_DAY))

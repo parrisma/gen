@@ -50,6 +50,14 @@ class Organism(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def generation(self) -> int:
+        """
+        Return the number of generations old for this organism
+        :return: The number of generations the organism has lived for.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def run(self,
             environment_state: 'EnvironmentState') -> 'Organism':
         """

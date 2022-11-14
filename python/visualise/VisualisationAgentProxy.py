@@ -76,7 +76,7 @@ class VisualisationAgentProxy(Agent):
         Send initialise request to Visualisation service
         """
         _ = self._producer.send(topic=self._topic,
-                                value=self._basic_visualiser_env_proxy.initialise())
+                                value=self._basic_visualiser_env_proxy.initialise(**kwargs))
         self._trace.log(f'Visualisation Agent {self} sent initialise message')
         return
 

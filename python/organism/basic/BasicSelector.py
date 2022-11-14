@@ -1,3 +1,4 @@
+import math
 from typing import List
 from copy import copy
 import numpy as np
@@ -48,10 +49,11 @@ class BasicSelector(Selector):
             o: o.metrics().get_fitness() * self._fitness_weight + o.metrics().get_diversity() * self._diversity_weight,
                                    reverse=True)
         sorted_population.append(None)
-        survivors = np.random.choice(a=sorted_population, p=probs, size=len(population), replace=True)
         final_survivors = []
-        for s in survivors:
-            if s is not None:  # Ignore the dummy entry mapped to last selection probability
-                if s not in final_survivors:
-                    final_survivors.append(s)
+        target_survivors = math.floor(sum(probs[0:-1]) * len(population))
+        while len(final_survivors) < target_survivors:
+            survivor = np.random.choice(a=sorted_population, p=probs, size=1, replace=True)[0]
+            if survivor is not None:  # Ignore the dummy entry mapped to last selection probability
+                if survivor not in final_survivors:
+                    final_survivors.append(survivor)
         return final_survivors

@@ -43,5 +43,6 @@ class SimpleTrace(TraceI):
         return
 
     def log(self, msg: object, level: int = None) -> None:
+        self._pid = os.getpid()
         print(f'ST: {self._session_uuid} - {self._pid} - {msg}')
         return

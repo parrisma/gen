@@ -31,6 +31,7 @@ class DynamicPointAnimation(PointAnimationData):
         organisms: List[Organism] = state.get_attributes()[BasicEnvironmentAttributes.POPULATION]  # NOQA
         points: np.ndarray = np.zeros((len(organisms), 3))
         idx: int = 0
+        o: List[Organism] = []
         for organism in organisms:
             genome = organism.get_genome()
             gene: Gene = None  # NOQA
@@ -40,10 +41,15 @@ class DynamicPointAnimation(PointAnimationData):
                 if isinstance(gene, DroughtToleranceGene):
                     points[idx][0] = (gene.value() + 1.0) / 2.0
             points[idx][2] = organism.fitness()
+            o.append(organism)
             idx += 1
 
-        for p in points:
-            print(f' x{(p[0] * 2) - 1} y{(p[1] * 2) - 1} z{p[2]}')
+        res = [r for r in zip(o, points)]
+        res = sorted(res, key=lambda x: x[0].get_id())
+        og: Organism
+        for og, p in res:
+            print(
+                f' id {og.get_id()} r {og.generation()} f {og.metrics().get_fitness():+.8f} d {og.metrics().get_diversity():+.8f} x {(p[0] * 2) - 1:+.8f} y {(p[1] * 2) - 1:+.8f} z {p[2]:+.8f}')
         return points
 
     def get_data_for_frame(self,
