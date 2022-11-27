@@ -37,7 +37,7 @@ class Gene(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def value(self):
+    def value(self, **kwargs):
         """
         Return the value of the Gene - the return type is specific to the Gene
         """
@@ -91,3 +91,28 @@ class Gene(ABC):
                 new_value -= step_size
 
         return np.minimum(v_max, np.maximum(v_min, new_value))
+
+    @classmethod
+    def mutate_int(cls,
+                   current_value: int,
+                   mutation_rate: float,
+                   step_size: float,
+                   v_min: int,
+                   v_max: int) -> int:
+        """
+        Mutate the current value randomly by + or - the step size
+        :param current_value: The value to be mutated
+        :param mutation_rate: The probability of a mutation happening as a result of this call
+        :param step_size: The step size of the mutation
+        :param v_min: Clip the mutated value at this lower bound
+        :param v_max: Clip the mutated value at this upper bound
+        :return: the value after the mutation
+        """
+        new_value: int = current_value
+        if np.random.rand() <= mutation_rate:
+            if np.random.rand() > 0.5:
+                new_value += step_size
+            else:
+                new_value -= step_size
+
+        return int(np.floor(np.minimum(v_max, np.maximum(v_min, new_value))))

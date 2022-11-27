@@ -12,7 +12,7 @@ from python.base.Genome import Genome
 from python.base.Metrics import Metrics
 from python.organism.basic.BasicEnvironmentState import BasicEnvironmentState
 from python.organism.basic.BasicSelector import BasicSelector
-from python.organism.basic.DynamicPointAnimation import DynamicPointAnimation
+from python.organism.basic.BasicDynamicPointAnimation import BasicDynamicPointAnimation
 from python.exceptions.PopulationExtinct import PopulationExtinct
 from rltrace.Trace import Trace
 from python.visualise.VisualisationAgentProxy import VisualisationAgentProxy
@@ -108,7 +108,7 @@ class BasicEnv(Env):
         """
         self._metrics.clear()
         try:
-            with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
+            with concurrent.futures.ProcessPoolExecutor(max_workers=50) as executor:
                 # All Organisms must be pickalble before mutli-processing. This is because they are sent to the
                 # spawned processes and get_state() also passes a list of organisms
                 for o in self._population.values():
@@ -154,6 +154,7 @@ class BasicEnv(Env):
             # Select parents
             parents: List[Organism] = np.random.choice(a=np.array(list(self._population.values())),
                                                        size=2,
+                                                       p=self._selector.rank_probabilities(num=len(self._population)),
                                                        replace=False)
 
             # Create new organism Genome
@@ -161,6 +162,7 @@ class BasicEnv(Env):
             new_organism: Organism = self._organism_factory.new(genome=genome)
             new_organism.mutate(step_size=self._mutation_step)
             next_generation.append(new_organism)
+            self._trace.log(f'new {new_organism.get_id()} from parents {parents[0].get_id()} & {parents[1].get_id()}')
 
         for organism in next_generation:
             self._population[organism.get_id()] = organism
@@ -176,7 +178,7 @@ class BasicEnv(Env):
                                                    env_light_level=self._env_light_level,
                                                    env_drought_level=self._env_drought_level)
         self.create_generation_zero()
-        dpa = DynamicPointAnimation(env_state=self.get_state)
+        dpa = BasicDynamicPointAnimation(env_state=self.get_state)
 
         idx: int = 0
         while not self.termination_conditions_met():

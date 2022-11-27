@@ -1,7 +1,6 @@
-import math
+import numpy as np
 from typing import List
 from copy import copy
-import numpy as np
 from python.organism.basic.BasicOrganismFactory import BasicOrganism
 from python.base.Selector import Selector
 
@@ -30,6 +29,28 @@ class BasicSelector(Selector):
 
         return
 
+    def rank_probabilities(self,
+                           num: int) -> List[float]:
+        """
+        The list of selection probabilities for rank selection of organisms ordered by fitness
+        :param num: The number of organisms in the population
+        :return: List of Probabilities
+        """
+        return Selector.rank_selection_probabilities(initial_prob=self._selection_probability, num=num)
+
+    def _fitness_ordered_population(self,
+                                    population: List[BasicOrganism]) -> List[BasicOrganism]:
+        """
+        The given population sorted by fitness
+        :param population: The population to sort
+        :return: A copy of the population sorted by fitness
+        """
+        sorted_population = copy(population)
+        sorted_population = sorted(sorted_population, key=lambda
+            o: o.metrics().get_fitness() * self._fitness_weight + o.metrics().get_diversity() * self._diversity_weight,
+                                   reverse=True)
+        return sorted_population
+
     def select_survivors(self,
                          population: List[BasicOrganism]) -> List[BasicOrganism]:
         """
@@ -42,18 +63,13 @@ class BasicSelector(Selector):
         :return: A list of members that survived
 
         """
-        probs = Selector.rank_selection_probabilities(initial_prob=self._selection_probability,
-                                                      num=len(population) + 1)
-        sorted_population = copy(population)
-        sorted_population = sorted(sorted_population, key=lambda
-            o: o.metrics().get_fitness() * self._fitness_weight + o.metrics().get_diversity() * self._diversity_weight,
-                                   reverse=True)
-        sorted_population.append(None)
+        probs = self.rank_probabilities(num=len(population) + 1)
+        sorted_population: List[BasicOrganism] = self._fitness_ordered_population(population=population)
+        sorted_population.append(None)  # NOQA
         final_survivors = []
-        target_survivors = math.floor(sum(probs[0:-1]) * len(population))
-        while len(final_survivors) < target_survivors:
-            survivor = np.random.choice(a=sorted_population, p=probs, size=1, replace=True)[0]
-            if survivor is not None:  # Ignore the dummy entry mapped to last selection probability
-                if survivor not in final_survivors:
-                    final_survivors.append(survivor)
+        survivors = np.random.choice(a=sorted_population, p=probs, size=len(population), replace=True)
+        for s in survivors:
+            if s is not None:  # Ignore the dummy entry mapped to last selection probability
+                if s not in final_survivors:
+                    final_survivors.append(s)
         return final_survivors

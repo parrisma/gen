@@ -35,11 +35,13 @@ class MainSimulator:
         """
         Boostrap the environment and run the evolutionary simulation.
         """
+        self._trace.log('Session Start')
         BasicEnv(trace=self._trace,
                  args=self._args,
                  conf=Conf(self._config_file),
                  organism_factory=BasicOrganismFactory(self._trace),
                  selector=BasicSelector()).run()
+        self._trace.log('Session End')
         return
 
 

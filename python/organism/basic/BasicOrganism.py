@@ -1,4 +1,4 @@
-from typing import List, Dict, Union, Callable
+from typing import List, Dict, Union, Callable, Any
 import numpy as np
 from copy import copy
 from python.id.OrganismId import OrganismId
@@ -13,7 +13,7 @@ from python.organism.basic.BasicChromosome import BasicChromosome
 from python.organism.basic.BasicGenome import BasicGenome
 from python.organism.basic.genes.LightToleranceGene import LightToleranceGene
 from python.organism.basic.genes.DroughtToleranceGene import DroughtToleranceGene
-from python.organism.basic.SimpleTrace import SimpleTrace
+from util.SimpleTrace import SimpleTrace
 from rltrace.Trace import Trace
 from rltrace.Trace import LogLevel
 from rltrace.elastic.ElasticTraceBootStrap import ElasticTraceBootStrap
@@ -149,7 +149,7 @@ class BasicOrganism(Organism):
         """
         self._generation = self._generation + 1
         self._trace.log(f'Organism {self._id} run {self._generation}')
-        bm: Dict[BasicEnvironmentAttributes, object] = environment_state.get_attributes()  # NOQA
+        bm: Dict[BasicEnvironmentAttributes, Any] = environment_state.get_attributes()  # NOQA
 
         ave_light = float(bm.get(BasicEnvironmentAttributes.AVG_HOURS_OF_LIGHT_PER_DAY))
         ave_drought = float(bm.get(BasicEnvironmentAttributes.AVG_HOURS_BETWEEN_RAIN))

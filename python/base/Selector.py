@@ -6,7 +6,7 @@ from python.base.Organism import Organism
 
 class Selector(ABC):
     """
-    The interface for selecting Organisms from a population.
+    The interface for rank selecting Organisms from a population.
     """
 
     @abstractmethod
@@ -16,6 +16,16 @@ class Selector(ABC):
         Select the population survivors
         :param population: the current population
         :return: A List of the members that survived
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def rank_probabilities(self,
+                           num: int) -> List[float]:
+        """
+        The list of selection probabilities for rank selection of organisms ordered by fitness
+        :param num: The number of organisms in the population
+        :return: List of Probabilities
         """
         raise NotImplementedError
 

@@ -9,6 +9,11 @@ import Trace
 
 
 class InvocationHandler:
+    """
+    A class that maps Kafka messages to internal functions. Where the name of the function is passed as a field
+    and the arguments passed as kwargs.
+    """
+
     _method_name: str = 'method_name'
     _method_args: str = 'method_args'
     _is_new_request: str = 'is_new_request'

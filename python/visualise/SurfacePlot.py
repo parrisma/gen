@@ -104,7 +104,7 @@ class SurfacePlot:
         self._y_ticks = PlotUtil.ticks(v=self._ym, given_ticks=y_ticks)
         self._z_ticks = PlotUtil.ticks(v=self._zm, given_ticks=z_ticks)
 
-        self._show_thread: threading.Thread = None
+        self._show_thread: threading.Thread = None  # NOQA
 
         self._closed: bool = False
 

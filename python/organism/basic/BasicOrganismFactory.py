@@ -29,9 +29,8 @@ class BasicOrganismFactory(OrganismFactory):
         new_organism: Organism = None  # NOQA
         if genome is None:
             new_organism = BasicOrganism(session_uuid=self._trace.session_uuid,
-                                         genome=
-                                         BasicGenome([BasicChromosome(drought_gene=DroughtToleranceGene(),
-                                                                      light_gene=LightToleranceGene())]))
+                                         genome=BasicGenome([BasicChromosome(drought_gene=DroughtToleranceGene(),
+                                                                             light_gene=LightToleranceGene())]))
         else:
             new_organism = BasicOrganism(session_uuid=self._trace.session_uuid,
                                          genome=genome)  # NOQA

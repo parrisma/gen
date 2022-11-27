@@ -72,7 +72,7 @@ class Organism(ABC):
     def get_relative_diversity(self,
                                comparison_organism: List['Organism']) -> float:
         """
-        Get the diversity of the Organism with respect to the given Organism
+        Get the diversity of the Organism with respect to the given Organism(s)
         :param comparison_organism: The Organism to calculate diversity with respect to.
         :return: The relative diversity in the range 0.0 to 1.0
         """
@@ -112,6 +112,7 @@ class Organism(ABC):
     def pickle_state_on(self) -> None:
         """
         Ensure the Organism and all of its members are in a pickleable state
+        (This is required for multiprocessing use case for passing state to spawned processes)
         """
         raise NotImplementedError
 
@@ -119,6 +120,7 @@ class Organism(ABC):
     def pickle_state_off(self) -> None:
         """
         Release the condition that the Organism and members need to be pickleable.
+        (This is required for multiprocessing use case for passing state to spawned processes)
         """
         raise NotImplementedError
 

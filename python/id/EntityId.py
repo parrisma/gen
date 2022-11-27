@@ -24,7 +24,7 @@ class EntityId(str):
         """
         ID equality check
         :param other: Id to check equality to
-        :return: True if Id's are equivelant
+        :return: True if Id's are equivalent
         """
         if isinstance(other, EntityId):
             if self._id == other._id:
